@@ -18,6 +18,7 @@ def get_embedding_dir(cfg):
         / dataset_type
         / split_mode
         / embedding_mode
+        / f"manifest_{embedding_mode}.csv"
     )
 
     return embedding_dir
