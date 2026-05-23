@@ -15,14 +15,16 @@ def _config_hash(cfg):
     return hashlib.md5(payload.encode("utf-8")).hexdigest()
 
 def _load_cache(path):
-    if os.path.exists(path):
-        with open(f"{path}/grouped_holdout_tuning_cache.json", "r", encoding="utf-8") as f:
+    file_path = os.path.join(path, "grouped_holdout_tuning_cache.json")
+    if os.path.exists(file_path):
+        with open(file_path, "r", encoding="utf-8") as f:
             return json.load(f)
     return {}
 
 def _save_cache(cache, path):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(f"{path}/grouped_holdout_tuning_cache.json", "w", encoding="utf-8") as f:
+    save_path = os.path.join(path, "grouped_holdout_tuning_cache.json")
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    with open(save_path, "w", encoding="utf-8") as f:
         json.dump(cache, f, indent=2)
 
 def _build_grid(space):
@@ -106,13 +108,14 @@ def run_grouped_holdout_hyperparameter_tuning(search_space, max_trails=12, cache
 
     df_results = pd.DataFrame(results)
     df_results = df_results.sort_values(by=["macro_f1_mean"], ascending=False)
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
     df_results.to_csv(f"{save_path}/grouped_holdout_tuning_results.csv", index=False)
 
     BEST_CFG = pick_best_config(df_results, DEFAULT_HP)
     print("Best grouped-holdout config:")
     print(BEST_CFG)
-    with open(f"{save_path}/grouped_holdout_best_config.json", "w", encoding="utf-8") as f:
+    best_cfg_path = os.path.join(save_path, "grouped_holdout_best_config.json")
+    os.makedirs(os.path.dirname(best_cfg_path), exist_ok=True)
+    with open(best_cfg_path, "w", encoding="utf-8") as f:
         json.dump(BEST_CFG, f, indent=2)
 
     return BEST_CFG
