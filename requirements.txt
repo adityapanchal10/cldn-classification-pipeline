@@ -14,3 +14,4 @@ scipy==1.17.1
 torch==2.12.0
 torchinfo==1.8.0
 tqdm==4.67.3
+ipykernel
