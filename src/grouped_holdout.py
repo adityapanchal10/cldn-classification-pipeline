@@ -280,9 +280,9 @@ def train_grouped_holdout_cv(
         print(f"  Train class dist: {Counter(train_lbl.numpy())}")
 
         val_loader = build_grouped_val_loader(
-            test_emb=test_emb,
-            test_lbl=test_lbl,
-            test_pid=test_pid,
+            split["test_file_idx"],
+            embeddings_by_file,
+            file_meta,
             batch_size=batch_size,
         )
 
