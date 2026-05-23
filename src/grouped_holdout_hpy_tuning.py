@@ -55,7 +55,7 @@ def pick_best_config(df_results, default_hp):
     merged.update(best_cfg)
     return merged
 
-def run_grouped_holdout_trial(cfg, cache, cache_path):
+def run_grouped_holdout_trial(cfg, cache, cache_path, file_meta=None, embeddings_by_file=None, model=None, seq_len=None, device="cuda"):
     key = _config_hash(cfg)
     if key in cache:
         return cache[key]
@@ -63,7 +63,7 @@ def run_grouped_holdout_trial(cfg, cache, cache_path):
     grouped_results, _ = train_grouped_holdout_cv(
         file_meta=file_meta,
         embeddings_by_file=embeddings_by_file,
-        model_fn=lambda: MSAClassifier(num_classes=3, max_seq_len=seq_len),
+        model_fn=lambda: model(),
         seq_len=seq_len,
         num_epochs=cfg["num_epochs"],
         device=device,
@@ -85,7 +85,7 @@ def run_grouped_holdout_trial(cfg, cache, cache_path):
     _save_cache(cache, cache_path)
     return result
 
-def run_grouped_holdout_hyperparameter_tuning(search_space, max_trails=12, cache_path="grouped_holdout_tuning_cache.json", save_path="grouped_holdout_tuning_results.csv"):
+def run_grouped_holdout_hyperparameter_tuning(search_space, max_trails=12, cache_path="grouped_holdout_tuning_cache.json", save_path="grouped_holdout_tuning_results.csv", file_meta=None, embeddings_by_file=None, model=None, seq_len=None, device="cuda"):
     cache = _load_cache(cache_path)
     results = []
 
@@ -94,7 +94,7 @@ def run_grouped_holdout_hyperparameter_tuning(search_space, max_trails=12, cache
             continue
         if cfg["weighted_ce_power"] < 0.0:
             cfg = {k: v for k, v in cfg.items() if k != "weighted_ce_power"}
-        results.append(run_grouped_holdout_trial(cfg, cache, cache_path))
+        results.append(run_grouped_holdout_trial(cfg, cache, cache_path, file_meta, embeddings_by_file, model, seq_len, device))
         if len(results) >= max_trials:
             break
         time.sleep(0.1)
