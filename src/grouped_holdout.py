@@ -158,8 +158,6 @@ def build_grouped_val_loader(
         emb = embeddings_by_file[file_idx]
         label = file_meta[file_idx]["label"]
         nseq  = emb.shape[0]
-        seq_ids = file_meta[file_idx]["ids"]
-        fnames = file_meta[file_idx]["fname"]
 
         val_emb_list.append(emb)
         val_lbl_list.extend([label] * nseq)
@@ -170,7 +168,7 @@ def build_grouped_val_loader(
     val_pid = torch.tensor(val_pid_list, dtype=torch.long)
 
     val_ds = TensorDataset(val_emb, val_lbl, val_pid)
-    return DataLoader(val_ds, batch_size=batch_size, shuffle=False), val_lbl, seq_ids, fnames
+    return DataLoader(val_ds, batch_size=batch_size, shuffle=False), val_lbl
 
 def compute_grouped_holdout_metrics(
     y_true,
@@ -281,7 +279,7 @@ def train_grouped_holdout_cv(
 
         print(f"  Train class dist: {Counter(train_lbl.numpy())}")
 
-        val_loader, val_lbl, test_seq_ids, test_fnames = build_grouped_val_loader(
+        val_loader, val_lbl = build_grouped_val_loader(
             split["test_file_idx"],
             embeddings_by_file,
             file_meta,
@@ -339,8 +337,6 @@ def train_grouped_holdout_cv(
 
         pred_df = pd.DataFrame({
             "fold": fold_idx,
-            "seq_id": test_seq_ids,
-            "source_file": test_fnames,
             "true_label": y_true_best,
             "pred_label": metrics["y_pred"],
             "prob_barrier": y_prob_best[:, 0],
