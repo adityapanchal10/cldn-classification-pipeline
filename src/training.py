@@ -254,10 +254,7 @@ def train_classifier(
 
             optimizer.zero_grad()
 
-            class_logits, pooled = classifier(
-                batch_x, return_pooled=True
-            )
-            paralog_logits = None
+            class_logits = classifier(batch_x)
 
             L_cls = criterion(class_logits, batch_y)
 
@@ -286,7 +283,7 @@ def train_classifier(
                 batch_x = batch_x.to(device)
                 batch_y = batch_y.to(device)
 
-                class_logits, pooled = classifier(batch_x, return_pooled=True)
+                class_logits = classifier(batch_x)
 
                 v_loss = criterion(class_logits, batch_y)
                 val_loss_sum += v_loss.item() * batch_x.size(0)
