@@ -122,7 +122,7 @@ def infer_label_from_header(header_text: str) -> int:
 def load_grouped_embeddings_from_manifest(
     manifest_candidates,
     init_embedder=True,
-    device=device,
+    device='cuda',
 ):
     """
     Load grouped embeddings from a grouped-manifest CSV.
