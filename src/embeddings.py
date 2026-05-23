@@ -164,6 +164,7 @@ def load_grouped_embeddings_from_manifest(
             "fname": info["fname"],
             "label": info["label"],
             "seqs": info["seqs"],
+            "ids": info["ids"],
         }
 
     all_embeddings_list = []
