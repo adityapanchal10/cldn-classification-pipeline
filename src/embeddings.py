@@ -2,6 +2,9 @@ from pathlib import Path
 import csv
 from collections import Counter
 
+from src.dataset import MSADataset
+from src.embedder import MSAEmbedder
+
 def infer_label_from_item_id(item_id: str) -> int:
     key = item_id.strip().lower()
 
