@@ -11,7 +11,7 @@ def get_embedding_dir(cfg):
 
     embedding_mode = "msa" if msa_mode else "independent"
 
-    base_dir = Path("embeddings")
+    base_dir = Path("/content/drive/MyDrive/Thesis data/embeddings")
 
     embedding_dir = (
         base_dir
