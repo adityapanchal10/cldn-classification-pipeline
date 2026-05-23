@@ -16,4 +16,4 @@ evaluation:
   test_data: "Explain_humanCldn2-10a-15-17.fasta"
 
 path:
-  runs_root: "drive/MyDrive/Thesis data/runs"
+  runs_root: "/content/drive/MyDrive/Thesis data/runs"

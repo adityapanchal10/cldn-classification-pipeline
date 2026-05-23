@@ -311,7 +311,7 @@ def train_grouped_holdout_cv(
             held_out_class_name=None,
             held_out_file_name=",".join(split["test_file_names"]),
             class_names=class_names,
-            checkpoint_path=f"{checkpoint_dir}/grouped_holdout_fold{fold_idx}.pt",
+            checkpoint_path=f"{checkpoint_dir}/grouped_holdout_fold{fold_idx}.pt" if checkpoint_dir else None,
             warmup_epochs=warmup_epochs,
             optimizer_lr=optimizer_lr,
             optimizer_weight_decay=optimizer_weight_decay,

@@ -77,6 +77,7 @@ def run_grouped_holdout_trial(cfg, cache, cache_path, file_meta=None, embeddings
         optimizer_lr=cfg["optimizer_lr"],
         optimizer_weight_decay=cfg["optimizer_weight_decay"],
         schedular_patience=cfg["schedular_patience"],
+        checkpoint_dir=None
     )
 
     summary = _summarize_grouped_results(grouped_results)

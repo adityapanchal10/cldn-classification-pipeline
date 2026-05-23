@@ -330,7 +330,7 @@ def train_classifier(
         in_warmup = epoch < warmup_epochs
 
         improved = (not in_warmup) and (primary_metric > best_primary_metric)
-        if improved:
+        if improved and checkpoint_path is not None:
             best_primary_metric = primary_metric
             patience_counter    = 0
             torch.save({
