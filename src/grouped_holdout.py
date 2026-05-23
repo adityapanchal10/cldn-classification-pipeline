@@ -168,7 +168,7 @@ def build_grouped_val_loader(
     val_pid = torch.tensor(val_pid_list, dtype=torch.long)
 
     val_ds = TensorDataset(val_emb, val_lbl, val_pid)
-    return DataLoader(val_ds, batch_size=batch_size, shuffle=False)
+    return DataLoader(val_ds, batch_size=batch_size, shuffle=False), val_lbl
 
 def compute_grouped_holdout_metrics(
     y_true,
@@ -279,14 +279,14 @@ def train_grouped_holdout_cv(
 
         print(f"  Train class dist: {Counter(train_lbl.numpy())}")
 
-        val_loader = build_grouped_val_loader(
+        val_loader, val_lbl = build_grouped_val_loader(
             split["test_file_idx"],
             embeddings_by_file,
             file_meta,
             batch_size=batch_size,
         )
 
-        print(f"  Val class dist: {Counter(test_lbl.numpy())}")
+        print(f"  Val class dist: {Counter(val_lbl.numpy())}")
 
         # Fresh model and criterion 
         model = model_fn().to(device)
