@@ -1,6 +1,6 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 
 class ResidualMLPBlock(nn.Module):
     def __init__(self, dim, hidden_dim=None, dropout=0.4):
