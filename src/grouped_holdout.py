@@ -339,8 +339,6 @@ def train_grouped_holdout_cv(
 
         pred_df = pd.DataFrame({
             "fold": fold_idx,
-            "distribution": distribution,
-            "shuffle_test_msa": shuffle_test_msa,
             "seq_id": test_seq_ids,
             "source_file": test_fnames,
             "true_label": y_true_best,
@@ -356,9 +354,6 @@ def train_grouped_holdout_cv(
             "fold": fold_idx,
             "train_files": split["train_file_names"],
             "test_files": split["test_file_names"],
-            "distribution": distribution,
-            "shuffle_test_msa": shuffle_test_msa,
-            "build_meta": build_meta,
             "saved_epoch": history["saved_epoch"],
             "accuracy": metrics["accuracy"],
             "macro_recall": metrics["macro_recall"],
@@ -397,11 +392,6 @@ def print_grouped_holdout_summary(grouped_results):
         print("No grouped results found.")
         return
 
-    distribution = grouped_results[0]["distribution"]
-    shuffle_test_msa = grouped_results[0]["shuffle_test_msa"]
-
-    print(f"Distribution : {distribution}")
-    print(f"Shuffle test : {shuffle_test_msa}")
     print("-" * 120)
 
     print(f"{'Fold':<5} {'Test files':<45} {'Acc%':>8} {'MacroRec%':>10} {'MacroF1%':>10} "
@@ -446,8 +436,6 @@ def save_grouped_holdout_results(grouped_results, prefix="grouped_holdout"):
         "fold": r["fold"],
         "train_files": ",".join(r["train_files"]),
         "test_files": ",".join(r["test_files"]),
-        "distribution": r["distribution"],
-        "shuffle_test_msa": r["shuffle_test_msa"],
         "saved_epoch": r["saved_epoch"],
         "accuracy": r["accuracy"],
         "macro_recall": r["macro_recall"],

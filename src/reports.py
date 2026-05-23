@@ -428,15 +428,10 @@ def report_grouped_holdout_main(
         print("No grouped results found.")
         return None
 
-    distribution = grouped_results[0]["distribution"]
-    shuffle_test_msa = grouped_results[0]["shuffle_test_msa"]
-
     print("Unbiased held-out evaluation using grouped mixed-MSA test folds.")
     print("Each fold holds out 1 barrier + 1 cation + 1 anion source MSA,")
     print("then recomputes embeddings jointly in mixed-MSA context.")
     print("=" * 78)
-    print(f"Distribution mode : {distribution}")
-    print(f"Shuffle test MSA  : {shuffle_test_msa}")
 
     # 1. Fold-level table
     fold_df = _grouped_fold_summary_df(grouped_results)
