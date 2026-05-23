@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 import gc
 
+from src.grouped_holdout import train_grouped_holdout_cv
+
 def _config_hash(cfg):
     payload = json.dumps(cfg, sort_keys=True)
     return hashlib.md5(payload.encode("utf-8")).hexdigest()
