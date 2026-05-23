@@ -1,6 +1,8 @@
 from pathlib import Path
 import csv
 from collections import Counter
+import torch
+from Bio import SeqIO
 
 from src.dataset import MSADataset
 from src.embedder import MSAEmbedder
