@@ -10,6 +10,4 @@ def build_model(cfg):
 
     model_class = getattr(module, class_name)
 
-    model = model_class()
-
-    return model
+    return model_class
