@@ -1,5 +1,6 @@
 from pathlib import Path
 import csv
+from collections import Counter
 
 def infer_label_from_item_id(item_id: str) -> int:
     key = item_id.strip().lower()
