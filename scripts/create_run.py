@@ -11,7 +11,7 @@ def create_run(cfg):
     )
 
     run_dir = (
-        Path(cfg["paths"]["runs_root"])
+        Path(cfg["path"]["runs_root"])
         / f"{run_name}_{timestamp}"
     )
 

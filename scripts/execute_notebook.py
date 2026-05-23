@@ -1,6 +1,5 @@
 import papermill as pm
 
-
 def execute_notebook(
     input_path,
     output_path,
