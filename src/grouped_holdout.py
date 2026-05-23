@@ -258,8 +258,6 @@ def train_grouped_holdout_cv(
     print("\n" + "=" * 90)
     print(f"GROUPED MIXED HOLDOUT EVALUATION")
     print(f"  Folds        : {len(splits)}")
-    print(f"  Distribution : {distribution}")
-    print(f"  Shuffle test : {shuffle_test_msa}")
     print("=" * 90)
 
     for fold_idx, split in enumerate(splits, start=1):
