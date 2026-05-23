@@ -64,15 +64,17 @@ class MSADataset:
         Used for true MSA-mode embedding (all sequences from one file together).
         """
         msa_dict = {}
-        for seq, label, file_idx, fname in zip(
+        for id, seq, label, file_idx, fname in zip(
+            self.combined_ids,
             self.combined_seqs,
             self.combined_labels,
             self.combined_file_indices,
             self.combined_file_names,
         ):
             if file_idx not in msa_dict:
-                msa_dict[file_idx] = {'seqs': [], 'label': label, 'fname': fname}
+                msa_dict[file_idx] = {'ids': [], 'seqs': [], 'label': label, 'fname': fname}
             msa_dict[file_idx]['seqs'].append(seq)
+            msa_dict[file_idx]['ids'].append(id)
         return msa_dict
 
 

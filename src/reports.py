@@ -39,8 +39,6 @@ def grouped_checkpoint_summary_df(grouped_results):
         rows.append({
             "Fold": r["fold"],
             "Test files": ",".join(r["test_files"]),
-            "Distribution": r["distribution"],
-            "Shuffle test MSA": r["shuffle_test_msa"],
             "Saved epoch": best_epoch,
             "Final epoch": final_epoch,
             "Train loss @ saved": history["train_loss"][best_epoch - 1],
@@ -59,8 +57,6 @@ def _grouped_fold_summary_df(grouped_results):
         rows.append({
             "Fold": r["fold"],
             "Test files": ",".join(r["test_files"]),
-            "Distribution": r["distribution"],
-            "Shuffle": r["shuffle_test_msa"],
             "Saved epoch": r["saved_epoch"],
             "Accuracy (%)": r["accuracy"],
             "Macro Recall (%)": r["macro_recall"],
@@ -69,8 +65,6 @@ def _grouped_fold_summary_df(grouped_results):
             "Cation Recall (%)": r["recall_cation"],
             "Anion Recall (%)": r["recall_anion"],
             "Mean Abs Prop Error": r["mean_abs_prop_error"],
-            "Balanced k": r["build_meta"]["balanced_k"],
-            "N test": r["build_meta"]["n_test_total"],
         })
     return pd.DataFrame(rows)
 
@@ -136,8 +130,6 @@ def _grouped_composition_summary_df(grouped_results):
         row = {
             "Fold": r["fold"],
             "Test files": ",".join(r["test_files"]),
-            "Distribution": r["distribution"],
-            "Shuffle": r["shuffle_test_msa"],
             "Mean Abs Prop Error": r["mean_abs_prop_error"],
         }
 

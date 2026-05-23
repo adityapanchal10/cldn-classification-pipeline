@@ -155,9 +155,11 @@ def build_grouped_val_loader(
     val_pid_list = []
 
     for file_idx in val_file_idx:
-        emb   = embeddings_by_file[file_idx]
+        emb = embeddings_by_file[file_idx]
         label = file_meta[file_idx]["label"]
         nseq  = emb.shape[0]
+        seq_ids = file_meta[file_idx]["ids"]
+        fnames = file_meta[file_idx]["fname"]
 
         val_emb_list.append(emb)
         val_lbl_list.extend([label] * nseq)
@@ -168,7 +170,7 @@ def build_grouped_val_loader(
     val_pid = torch.tensor(val_pid_list, dtype=torch.long)
 
     val_ds = TensorDataset(val_emb, val_lbl, val_pid)
-    return DataLoader(val_ds, batch_size=batch_size, shuffle=False), val_lbl
+    return DataLoader(val_ds, batch_size=batch_size, shuffle=False), val_lbl, seq_ids, fnames
 
 def compute_grouped_holdout_metrics(
     y_true,
@@ -279,7 +281,7 @@ def train_grouped_holdout_cv(
 
         print(f"  Train class dist: {Counter(train_lbl.numpy())}")
 
-        val_loader, val_lbl = build_grouped_val_loader(
+        val_loader, val_lbl, test_seq_ids, test_fnames = build_grouped_val_loader(
             split["test_file_idx"],
             embeddings_by_file,
             file_meta,
@@ -442,8 +444,6 @@ def save_grouped_holdout_results(grouped_results, prefix="grouped_holdout"):
         "recall_cation": r["recall_cation"],
         "recall_anion": r["recall_anion"],
         "mean_abs_prop_error": r["mean_abs_prop_error"],
-        "balanced_k": r["build_meta"]["balanced_k"],
-        "n_test_total": r["build_meta"]["n_test_total"],
     } for r in grouped_results])
 
     preds_df = pd.concat([r["pred_df"] for r in grouped_results], ignore_index=True)
