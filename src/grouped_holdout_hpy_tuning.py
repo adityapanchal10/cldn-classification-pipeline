@@ -61,7 +61,6 @@ def run_grouped_holdout_trial(cfg, cache, cache_path):
     grouped_results, _ = train_grouped_holdout_cv(
         file_meta=file_meta,
         embeddings_by_file=embeddings_by_file,
-        embedder=embedder,
         model_fn=lambda: MSAClassifier(num_classes=3, max_seq_len=seq_len),
         seq_len=seq_len,
         num_epochs=cfg["num_epochs"],
@@ -71,12 +70,7 @@ def run_grouped_holdout_trial(cfg, cache, cache_path):
         num_classes=3,
         class_names={0: "barrier", 1: "cation", 2: "anion"},
         useWeightedSampler=cfg["useWeightedSampler"],
-        useWeightedCE=cfg["useWeightedCE"],
         weighted_ce_power=cfg.get("weighted_ce_power", 1.0),
-        max_msa_depth=cfg["max_msa_depth"],
-        distribution="natural",
-        shuffle_test_msa=True,
-        base_seed=101,
         warmup_epochs=cfg["warmup_epochs"],
         optimizer_lr=cfg["optimizer_lr"],
         optimizer_weight_decay=cfg["optimizer_weight_decay"],
@@ -94,9 +88,9 @@ def run_grouped_holdout_hyperparameter_tuning(search_space, max_trails=12, cache
     results = []
 
     for cfg in _build_grid(search_space):
-        if cfg["useWeightedSampler"] and cfg["useWeightedCE"]:
+        if cfg["useWeightedSampler"] and cfg["weighted_ce_power"] > 0.0:
             continue
-        if not cfg["useWeightedCE"]:
+        if cfg["weighted_ce_power"] < 0.0:
             cfg = {k: v for k, v in cfg.items() if k != "weighted_ce_power"}
         results.append(run_grouped_holdout_trial(cfg, cache, cache_path))
         if len(results) >= max_trials:
