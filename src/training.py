@@ -423,6 +423,7 @@ def print_final_training_summary(history, class_names=['barrier', 'cation', 'ani
     print(tabulate(df.round(3), headers='keys', tablefmt='fancy_grid',
                    showindex=False, numalign='center'))
     if save_path:
+        os.makedirs(save_path, exist_ok=True)
         df.to_csv(f"{save_path}/final_training_summary.csv", index=False)
     return df
 
@@ -460,6 +461,7 @@ def summarize_final_in_sample_metrics(history, class_names=['barrier', 'cation',
     print(tabulate(df.round(2), headers='keys', tablefmt='fancy_grid',
                    showindex=False, numalign='center'))
     if save_path:
+        os.makedirs(save_path, exist_ok=True)
         df.to_csv(f"{save_path}/final_{eval_label.lower()}_metrics.csv", index=False)
     return df
 
@@ -503,6 +505,7 @@ def final_in_sample_classification_table(history, class_names=['barrier', 'catio
     print(tabulate(df_full.round(2), headers='keys', tablefmt='fancy_grid',
                    showindex=False, numalign='center'))
     if save_path:
+        os.makedirs(save_path, exist_ok=True)
         df_full.to_csv(f"{save_path}/final_{eval_label.lower()}_classification_table.csv", index=False)
     return df_full
 
@@ -536,6 +539,7 @@ def plot_final_training_history(history, save_path=None, insample=True):
     fig.suptitle('Final All-Data Training History', fontsize=15, y=1.04)
     fig.tight_layout()
     if save_path:
+        os.makedirs(save_path, exist_ok=True)
         plt.savefig(f"{save_path}/final_training_history.png", bbox_inches='tight', dpi=300)
     plt.show()
 
@@ -564,6 +568,7 @@ def plot_final_macro_metrics(history, save_path=None, insample=True):
     fig.suptitle(f'Final All-Data {eval_label} Macro Metrics', fontsize=14, y=1.03)
     fig.tight_layout()
     if save_path:
+        os.makedirs(save_path, exist_ok=True)
         plt.savefig(f"{save_path}/final_macro_metrics.png", bbox_inches='tight', dpi=300)
     plt.show()
 
@@ -595,6 +600,7 @@ def plot_final_confusion_matrix(
     plt.title(title)
     plt.tight_layout()
     if save_path:
+        os.makedirs(save_path, exist_ok=True)
         plt.savefig(f"{save_path}/final_confusion_matrix.png", bbox_inches='tight', dpi=300)
     plt.show()
 
@@ -627,6 +633,7 @@ def plot_final_roc_curves(history, class_names=['barrier', 'cation', 'anion'], f
     fig.suptitle(f'Final Model {eval_label} ROC Curves', fontsize=14, y=1.02)
     plt.tight_layout()
     if save_path:
+        os.makedirs(save_path, exist_ok=True)
         plt.savefig(f"{save_path}/final_roc_curves.png", bbox_inches='tight', dpi=300)
     plt.show()
 

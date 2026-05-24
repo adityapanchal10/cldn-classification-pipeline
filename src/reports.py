@@ -192,6 +192,7 @@ def report_final_training_diagnostics(
     fig.suptitle('Final All-Data Training Diagnostics', fontsize=15, y=1.04)
     fig.tight_layout()
     if save_path:
+        os.makedirs(save_path, exist_ok=True)
         plt.savefig(f"{save_path}/final_diagnostics_curves.png", dpi=300, bbox_inches='tight')
     plt.show()
 
@@ -211,6 +212,7 @@ def report_final_training_diagnostics(
         plt.title('Final Model In-Sample Confusion Matrix (%)')
         plt.tight_layout()
         if save_path:
+            os.makedirs(save_path, exist_ok=True)
             plt.savefig(f"{save_path}/final_diagnostics_confusion.png", dpi=300, bbox_inches='tight')
         plt.show()
 
@@ -285,6 +287,9 @@ def report_lofo_cv_main(
     print("Unbiased performance under leave-one-file-out cross-validation.")
     print("Each sample contributes only via out-of-fold predictions from a held-out paralog.")
     print("=" * 78)
+
+    if save_path:
+        os.makedirs(save_path, exist_ok=True)
 
     # 1. Fold-level table
     fold_df = _lofo_fold_summary_df(fold_results)
@@ -421,6 +426,8 @@ def report_grouped_holdout_main(
     if len(grouped_results) == 0:
         print("No grouped results found.")
         return None
+    if save_path:
+        os.makedirs(save_path, exist_ok=True)
 
     print("Unbiased held-out evaluation using grouped mixed-MSA test folds.")
     print("Each fold holds out 1 barrier + 1 cation + 1 anion source MSA,")
@@ -568,6 +575,9 @@ def report_grouped_holdout_compact(grouped_results, save_path=None):
 
     fold_df = _grouped_fold_summary_df(grouped_results)
     ckpt_df = grouped_checkpoint_summary_df(grouped_results)
+
+    if save_path:
+        os.makedirs(save_path, exist_ok=True)
 
     print("\nFOLD SUMMARY")
     print(tabulate(fold_df.round(3), headers='keys', tablefmt='fancy_grid',
