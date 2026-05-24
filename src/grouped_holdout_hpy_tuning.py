@@ -11,6 +11,18 @@ import torch
 
 from src.grouped_holdout import train_grouped_holdout_cv
 
+DEFAULT_HP = {
+    "optimizer_lr": 1e-3,
+    "optimizer_weight_decay": 1e-2,
+    "schedular_patience": 10,
+    "warmup_epochs": 5,
+    "useWeightedSampler": False,
+    "weighted_ce_power": -1.0,
+    "num_epochs": 75,
+    "patience": 8,
+    "batch_size": 64,
+}
+
 def _config_hash(cfg):
     payload = json.dumps(cfg, sort_keys=True)
     return hashlib.md5(payload.encode("utf-8")).hexdigest()

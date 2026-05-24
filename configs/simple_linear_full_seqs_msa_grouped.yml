@@ -17,3 +17,18 @@ evaluation:
 
 path:
   runs_root: "/content/drive/MyDrive/Thesis data/runs"
+
+hyperparameters:
+  # Whether to run hyperparameter tuning for grouped holdout or provide custom set of values
+  use_custom_hyperparameters: true
+  # If not running hyperparameter tuning, these values will be used directly for training and evaluation
+  # Else leave empty
+  optimizer_lr: 1e-3
+  optimizer_weight_decay: 1e-3
+  schedular_patience: 10
+  warmup_epochs: 5
+  useWeightedSampler: false
+  weighted_ce_power: -1.0
+  num_epochs: 50
+  batch_size: 64
+  patience: 8

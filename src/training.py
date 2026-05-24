@@ -382,9 +382,13 @@ def train_classifier(
     history['best_val_preds']   = np.argmax(history['best_val_probs'], axis=1)
     return history
 
+def _eval_label(insample=True):
+    return 'InSample' if insample else 'Validation'
+
 # 1. Final training summary table
 
-def print_final_training_summary(history, class_names=['barrier', 'cation', 'anion'], save_path=None):
+def print_final_training_summary(history, class_names=['barrier', 'cation', 'anion'], save_path=None, insample=True):
+    eval_label = _eval_label(insample)
     best_epoch  = history['saved_epoch']
     final_epoch = len(history['train_loss'])
 
@@ -392,8 +396,8 @@ def print_final_training_summary(history, class_names=['barrier', 'cation', 'ani
         'Checkpoint': 'Best saved epoch', 'Epoch': best_epoch,
         'Train Loss': history['train_loss'][best_epoch - 1],
         'Train Acc (%)': history['train_acc'][best_epoch - 1],
-        'In-sample Eval Loss': history['val_loss'][best_epoch - 1],
-        'In-sample Eval Acc (%)': history['val_acc'][best_epoch - 1],
+        f'{eval_label} Loss': history['val_loss'][best_epoch - 1],
+        f'{eval_label} Acc (%)': history['val_acc'][best_epoch - 1],
         'Macro F1 (%)': history['val_macro_f1'][best_epoch - 1]
             if not np.isnan(history['val_macro_f1'][best_epoch - 1]) else np.nan,
         'Macro AUC (%)': history['val_auc'][best_epoch - 1]
@@ -403,8 +407,8 @@ def print_final_training_summary(history, class_names=['barrier', 'cation', 'ani
         'Checkpoint': 'Final epoch', 'Epoch': final_epoch,
         'Train Loss': history['train_loss'][-1],
         'Train Acc (%)': history['train_acc'][-1],
-        'In-sample Eval Loss': history['val_loss'][-1],
-        'In-sample Eval Acc (%)': history['val_acc'][-1],
+        f'{eval_label} Loss': history['val_loss'][-1],
+        f'{eval_label} Acc (%)': history['val_acc'][-1],
         'Macro F1 (%)': history['val_macro_f1'][-1]
             if not np.isnan(history['val_macro_f1'][-1]) else np.nan,
         'Macro AUC (%)': history['val_auc'][-1]
@@ -413,7 +417,7 @@ def print_final_training_summary(history, class_names=['barrier', 'cation', 'ani
 
     df = pd.DataFrame([row_best, row_final])
     print("\nFINAL TRAINING SUMMARY")
-    print("(Diagnostic / in-sample monitoring only)")
+    print(f"(Diagnostic / {eval_label.lower()} monitoring only)")
     print(tabulate(df.round(3), headers='keys', tablefmt='fancy_grid',
                    showindex=False, numalign='center'))
     if save_path:
@@ -421,9 +425,10 @@ def print_final_training_summary(history, class_names=['barrier', 'cation', 'ani
     return df
 
 
-# 2. Final in-sample overall metrics (optional)
+# 2. Final evaluation overall metrics (optional)
 
-def summarize_final_in_sample_metrics(history, class_names=['barrier', 'cation', 'anion'], save_path=None):
+def summarize_final_in_sample_metrics(history, class_names=['barrier', 'cation', 'anion'], save_path=None, insample=True):
+    eval_label = _eval_label(insample)
     y_true = np.asarray(history['best_val_targets'])
     y_pred = np.asarray(history['best_val_preds'])
     y_prob = np.asarray(history['best_val_probs'])
@@ -448,18 +453,19 @@ def summarize_final_in_sample_metrics(history, class_names=['barrier', 'cation',
         'Macro AUC OvR (%)': macro_auc, 'Num samples': len(y_true),
     }])
 
-    print("\nFINAL MODEL IN-SAMPLE PERFORMANCE AT SAVED EPOCH")
+    print(f"\nFINAL MODEL {eval_label.upper()} PERFORMANCE AT SAVED EPOCH")
     print("(Useful for optimization diagnostics; not an unbiased test estimate)")
     print(tabulate(df.round(2), headers='keys', tablefmt='fancy_grid',
                    showindex=False, numalign='center'))
     if save_path:
-        df.to_csv(f"{save_path}/final_in_sample_metrics.csv", index=False)
+        df.to_csv(f"{save_path}/final_{eval_label.lower()}_metrics.csv", index=False)
     return df
 
 
-# 3. Final in-sample per-class table (optional)
+# 3. Final evaluation per-class table (optional)
 
-def final_in_sample_classification_table(history, class_names=['barrier', 'cation', 'anion'], save_path=None):
+def final_in_sample_classification_table(history, class_names=['barrier', 'cation', 'anion'], save_path=None, insample=True):
+    eval_label = _eval_label(insample)
     y_true = np.asarray(history['best_val_targets'])
     y_pred = np.asarray(history['best_val_preds'])
     y_prob = np.asarray(history['best_val_probs'])
@@ -490,31 +496,32 @@ def final_in_sample_classification_table(history, class_names=['barrier', 'catio
     }])
     df_full = pd.concat([df, macro_row], ignore_index=True)
 
-    print("\nFINAL MODEL IN-SAMPLE PER-CLASS METRICS")
+    print(f"\nFINAL MODEL {eval_label.upper()} PER-CLASS METRICS")
     print("(At saved epoch; diagnostic only)")
     print(tabulate(df_full.round(2), headers='keys', tablefmt='fancy_grid',
                    showindex=False, numalign='center'))
     if save_path:
-        df_full.to_csv(f"{save_path}/final_in_sample_classification_table.csv", index=False)
+        df_full.to_csv(f"{save_path}/final_{eval_label.lower()}_classification_table.csv", index=False)
     return df_full
 
 
 # 4. Final training curves
 
-def plot_final_training_history(history, save_path=None):
+def plot_final_training_history(history, save_path=None, insample=True):
+    eval_label = _eval_label(insample)
     epochs     = np.arange(1, len(history['train_loss']) + 1)
     best_epoch = history['saved_epoch']
 
     fig, axes = plt.subplots(1, 3, figsize=(16, 4))
 
     axes[0].plot(epochs, history['train_loss'], label='Train', linewidth=2)
-    axes[0].plot(epochs, history['val_loss'], label='In-sample eval', linewidth=2)
+    axes[0].plot(epochs, history['val_loss'], label=f'{eval_label}', linewidth=2)
     axes[0].axvline(best_epoch, color='gray', linestyle=':', linewidth=1)
     axes[0].set(title='Final Training Loss', xlabel='Epoch', ylabel='Loss')
     axes[0].grid(True, alpha=0.3); axes[0].legend()
 
     axes[1].plot(epochs, history['train_acc'], label='Train', linewidth=2)
-    axes[1].plot(epochs, history['val_acc'], label='In-sample eval', linewidth=2)
+    axes[1].plot(epochs, history['val_acc'], label=f'{eval_label}', linewidth=2)
     axes[1].axvline(best_epoch, color='gray', linestyle=':', linewidth=1)
     axes[1].set(title='Final Training Accuracy', xlabel='Epoch', ylabel='Accuracy (%)')
     axes[1].grid(True, alpha=0.3); axes[1].legend()
@@ -533,7 +540,8 @@ def plot_final_training_history(history, save_path=None):
 
 # 5. Final macro metric curves
 
-def plot_final_macro_metrics(history, save_path=None):
+def plot_final_macro_metrics(history, save_path=None, insample=True):
+    eval_label = _eval_label(insample)
     epochs     = np.arange(1, len(history['train_loss']) + 1)
     best_epoch = history['saved_epoch']
     macro_f1   = np.asarray(history['val_macro_f1'], dtype=np.float32)
@@ -543,15 +551,15 @@ def plot_final_macro_metrics(history, save_path=None):
 
     axes[0].plot(epochs, macro_f1, color='tab:purple', linewidth=2)
     axes[0].axvline(best_epoch, color='gray', linestyle=':', linewidth=1)
-    axes[0].set(title='In-sample Macro F1', xlabel='Epoch', ylabel='Macro F1 (%)')
+    axes[0].set(title=f'{eval_label} Macro F1', xlabel='Epoch', ylabel='Macro F1 (%)')
     axes[0].grid(True, alpha=0.3)
 
     axes[1].plot(epochs, macro_auc, color='tab:red', linewidth=2)
     axes[1].axvline(best_epoch, color='gray', linestyle=':', linewidth=1)
-    axes[1].set(title='In-sample Macro AUC', xlabel='Epoch', ylabel='Macro AUC OvR (%)')
+    axes[1].set(title=f'{eval_label} Macro AUC', xlabel='Epoch', ylabel='Macro AUC OvR (%)')
     axes[1].grid(True, alpha=0.3)
 
-    fig.suptitle('Final All-Data In-Sample Macro Metrics', fontsize=14, y=1.03)
+    fig.suptitle(f'Final All-Data {eval_label} Macro Metrics', fontsize=14, y=1.03)
     fig.tight_layout()
     if save_path:
         plt.savefig(f"{save_path}/final_macro_metrics.png", bbox_inches='tight', dpi=300)
@@ -562,8 +570,9 @@ def plot_final_macro_metrics(history, save_path=None):
 
 def plot_final_confusion_matrix(
     history, class_names=['barrier', 'cation', 'anion'],
-    normalize=True, figsize=(6, 5), cmap='Blues', save_path=None,
+    normalize=True, figsize=(6, 5), cmap='Blues', save_path=None, insample=True,
 ):
+    eval_label = _eval_label(insample)
     y_true = np.asarray(history['best_val_targets'])
     y_pred = np.asarray(history['best_val_preds'])
 
@@ -571,10 +580,10 @@ def plot_final_confusion_matrix(
     if normalize:
         cm = cm.astype(np.float32) / np.clip(cm.sum(axis=1, keepdims=True), 1, None)
         cm_display = 100 * cm
-        fmt, title = '.1f', 'Final Model In-Sample Confusion Matrix (%)'
+        fmt, title = '.1f', f'Final Model {eval_label} Confusion Matrix (%)'
     else:
         cm_display = cm
-        fmt, title = 'd', 'Final Model In-Sample Confusion Matrix (Counts)'
+        fmt, title = 'd', f'Final Model {eval_label} Confusion Matrix (Counts)'
 
     plt.figure(figsize=figsize)
     sns.heatmap(cm_display, annot=np.round(cm_display, 1) if normalize else cm,
@@ -590,7 +599,8 @@ def plot_final_confusion_matrix(
 
 # 7. Final ROC curves (optional)
 
-def plot_final_roc_curves(history, class_names=['barrier', 'cation', 'anion'], figsize=None, save_path=None):
+def plot_final_roc_curves(history, class_names=['barrier', 'cation', 'anion'], figsize=None, save_path=None, insample=True):
+    eval_label = _eval_label(insample)
     y_true    = np.asarray(history['best_val_targets'])
     y_prob    = np.asarray(history['best_val_probs'])
     n_classes = len(class_names)
@@ -606,13 +616,13 @@ def plot_final_roc_curves(history, class_names=['barrier', 'cation', 'anion'], f
         roc_auc = auc(fpr, tpr)
         ax.plot(fpr, tpr, linewidth=2, label=f'AUC = {roc_auc:.3f}')
         ax.plot([0, 1], [0, 1], '--', color='gray', linewidth=1)
-        ax.set_title(f"In-sample ROC: '{class_names[i]}'")
+        ax.set_title(f"{eval_label} ROC: '{class_names[i]}'")
         ax.set_xlabel('False Positive Rate')
         ax.set_ylabel('True Positive Rate')
         ax.grid(True, alpha=0.3)
         ax.legend(loc='lower right')
 
-    fig.suptitle('Final Model In-Sample ROC Curves', fontsize=14, y=1.02)
+    fig.suptitle(f'Final Model {eval_label} ROC Curves', fontsize=14, y=1.02)
     plt.tight_layout()
     if save_path:
         plt.savefig(f"{save_path}/final_roc_curves.png", bbox_inches='tight', dpi=300)

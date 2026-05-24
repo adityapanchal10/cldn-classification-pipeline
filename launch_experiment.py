@@ -60,10 +60,10 @@ elif cfg["evaluation"]["mode"] == "single":
 # -------------------
 
 execute_notebook(
-    input_path="notebooks/evaluate.ipynb",
+    input_path="notebooks/inference.ipynb",
 
     output_path=(
-        run_dir / "evaluate.ipynb"
+        run_dir / "inference.ipynb"
     ),
 
     parameters={
