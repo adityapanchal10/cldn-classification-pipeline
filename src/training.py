@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import os
 from sklearn.metrics import f1_score, roc_auc_score
-
+from tabulate import tabulate
 
 def compute_honest_val_metrics(
     val_targets,
