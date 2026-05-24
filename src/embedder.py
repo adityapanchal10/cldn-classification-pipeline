@@ -1,5 +1,5 @@
 import esm
-
+import torch
 
 def load_msa_transformer(model_name="esm_msa1b_t12_100M_UR50S"):
     """Load a pretrained ESM MSA Transformer model and its alphabet."""
