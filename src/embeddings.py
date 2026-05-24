@@ -129,7 +129,7 @@ def infer_label_from_header(header_text: str) -> int:
 def load_grouped_embeddings_from_manifest(
     manifest_candidates,
     init_embedder=True,
-    device='cuda',
+    device=None,
 ):
     """
     Load grouped embeddings from a grouped-manifest CSV.
@@ -154,7 +154,7 @@ def load_grouped_embeddings_from_manifest(
     seq_len = data.getSequenceLength()
     print(f"Sequence length: {seq_len}")
 
-    embedder = MSAEmbedder(device=device) if init_embedder else None
+    embedder = MSAEmbedder() if init_embedder else None
 
     msa_by_file = data.getMSAsByFile()
     file_meta = {}
