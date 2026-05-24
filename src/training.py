@@ -334,7 +334,6 @@ def train_classifier(
         if improved and checkpoint_path is not None:
             best_primary_metric = primary_metric
             patience_counter    = 0
-            os.makedirs(checkpoint_path, exist_ok=True)
             torch.save({
                 "model_state":    classifier.state_dict(),
                 "epoch":          epoch + 1,
