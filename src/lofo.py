@@ -219,6 +219,10 @@ def train_lofo_cv(
 
     useWeightedCE = True if weighted_ce_power > 0 else False
 
+    # Ensure checkpoint dir exists
+    if checkpoint_dir is not None:
+        os.makedirs(checkpoint_dir, exist_ok=True)
+        
     unique_files = np.unique(all_file_idx)
     print("=" * 62)
     print(f"  LOFO-CV  —  {len(unique_files)} folds")

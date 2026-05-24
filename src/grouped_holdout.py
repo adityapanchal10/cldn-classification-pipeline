@@ -255,6 +255,10 @@ def train_grouped_holdout_cv(
 
     useWeightedCE = False if weighted_ce_power < 0 else True
 
+    # Ensure checkpoint dir exists
+    if checkpoint_dir is not None:
+        os.makedirs(checkpoint_dir, exist_ok=True)
+
     print("\n" + "=" * 90)
     print(f"GROUPED MIXED HOLDOUT EVALUATION")
     print(f"  Folds        : {len(splits)}")
