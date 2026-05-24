@@ -99,7 +99,7 @@ def run_grouped_holdout_hyperparameter_tuning(search_space, max_trails=12, cache
         if cfg["weighted_ce_power"] < 0.0:
             cfg = {k: v for k, v in cfg.items() if k != "weighted_ce_power"}
         results.append(run_grouped_holdout_trial(cfg, cache, cache_path, file_meta, embeddings_by_file, model, seq_len, device))
-        if len(results) >= max_trials:
+        if len(results) >= max_trails:
             break
         time.sleep(0.1)
         # clear cache from memory to avoid memory bloat
