@@ -1,6 +1,7 @@
 from collections import Counter
 
 import numpy as np
+import os
 import torch
 from torch.utils.data import DataLoader, TensorDataset, WeightedRandomSampler
 import pandas as pd
@@ -222,7 +223,7 @@ def train_lofo_cv(
     # Ensure checkpoint dir exists
     if checkpoint_dir is not None:
         os.makedirs(checkpoint_dir, exist_ok=True)
-        
+
     unique_files = np.unique(all_file_idx)
     print("=" * 62)
     print(f"  LOFO-CV  —  {len(unique_files)} folds")
