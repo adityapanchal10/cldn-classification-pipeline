@@ -5,8 +5,8 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import os
-from sklearn.metrics import f1_score, roc_auc_score
 from tabulate import tabulate
+from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, recall_score, accuracy_score
 
 def compute_honest_val_metrics(
     val_targets,
