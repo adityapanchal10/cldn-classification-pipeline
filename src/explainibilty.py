@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
+import json
 
 from src.dataset import CLASS_MAP
 
@@ -178,7 +179,24 @@ def explain_predictions(
             else "good" if max(deltas) < 0.1 else "check"
         ),
     }
-    return all_results
+    # Convert any torch tensors / numpy arrays in results to native Python types
+    def _make_json_serializable(obj):
+        import numpy as _np
+
+        if torch.is_tensor(obj):
+            t = obj.detach().cpu()
+            return t.item() if t.numel() == 1 else t.tolist()
+        if isinstance(obj, _np.ndarray):
+            return obj.tolist()
+        if isinstance(obj, dict):
+            return {k: _make_json_serializable(v) for k, v in obj.items()}
+        if isinstance(obj, (list, tuple)):
+            return [_make_json_serializable(v) for v in obj]
+        if isinstance(obj, (_np.integer, _np.floating)):
+            return obj.item()
+        return obj
+
+    return _make_json_serializable(all_results)
 
 
 def print_results(results):
@@ -238,10 +256,6 @@ def print_results(results):
                 print(
                     f"    Predicted class after ablation: {metrics['predicted_class_after_abl']}"
                 )
-
-
-from matplotlib.colors import LinearSegmentedColormap
-
 
 def visualize_sequence_explanations(
     results,
