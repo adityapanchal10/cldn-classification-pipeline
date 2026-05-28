@@ -1,0 +1,34 @@
+experiment:
+  name: "Simple Linear ECS only MSA Single Split"
+  seed: 999
+
+model:
+  module: "models.simple_linear"
+  class_name: "SimpleLinearClassifier"
+  uses_attention: false
+
+data:
+  dataset_type: "ecs_only"
+  use_msa_mode: true
+
+evaluation:
+  mode: "single"
+  test_data: "Explain_humanCldn2-10a-15-17.fasta"
+
+path:
+  runs_root: "/content/drive/MyDrive/Thesis data/runs"
+
+hyperparameters:
+  # Whether to run hyperparameter tuning for grouped holdout or provide custom set of values
+  use_custom_hyperparameters: false
+  # If not running hyperparameter tuning, these values will be used directly for training and evaluation
+  # Else leave empty
+  optimizer_lr: 
+  optimizer_weight_decay: 
+  schedular_patience: 
+  warmup_epochs: 
+  useWeightedSampler: 
+  weighted_ce_power: 
+  num_epochs: 
+  batch_size: 
+  patience: 
