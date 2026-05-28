@@ -1,5 +1,5 @@
 experiment:
-  name: "Simple Linear Full Seqs Non-MSA Single Split"
+  name: "Simple Linear Full Seqs MSA Single Split"
   seed: 999
 
 model:
