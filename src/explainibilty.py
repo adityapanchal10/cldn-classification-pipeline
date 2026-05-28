@@ -65,6 +65,113 @@ def get_top_k_residues(residue_attributions, k=10):
     return results
 
 
+def map_ecs_explanations_to_full_sequence(results, ecs_regions, full_seq_len):
+    """Map ECS-only attributions and top-k indices back to full-sequence positions.
+
+    Args:
+        results: Dict returned by `explain_predictions` (mutated in place).
+        ecs_regions: List of [start, end] tuples (1-indexed, inclusive).
+        full_seq_len: Length of the full sequence.
+
+    Returns:
+        Updated results dict with full-length `attributions` and remapped
+        `top_residue_indices` for each sample.
+    """
+    if not ecs_regions:
+        return results
+
+    def _ecs_to_full_index(ecs_idx):
+        offset = 0
+        for start, end in ecs_regions:
+            region_len = end - start + 1
+            if ecs_idx < offset + region_len:
+                return (start - 1) + (ecs_idx - offset)
+            offset += region_len
+        return None
+
+    for sample in results.get("samples", []):
+        ecs_attr = sample.get("attributions")
+        if ecs_attr is None:
+            continue
+
+        if torch.is_tensor(ecs_attr):
+            ecs_attr_np = ecs_attr.detach().cpu().numpy().flatten()
+        else:
+            ecs_attr_np = np.asarray(ecs_attr).flatten()
+
+        full_attr = np.zeros(full_seq_len, dtype=float)
+        ecs_idx = 0
+        for start, end in ecs_regions:
+            region_len = end - start + 1
+            full_start = start - 1
+            full_attr[full_start:full_start + region_len] = ecs_attr_np[
+                ecs_idx:ecs_idx + region_len
+            ]
+            ecs_idx += region_len
+
+        sample["attributions"] = torch.from_numpy(full_attr).float()
+
+        top_indices = sample.get("top_residue_indices")
+        if top_indices:
+            remapped = []
+            for ecs_idx in top_indices:
+                full_idx = _ecs_to_full_index(int(ecs_idx))
+                if full_idx is not None:
+                    remapped.append(full_idx)
+            sample["top_residue_indices"] = remapped
+
+    return results
+
+
+def map_ecs_attention_to_full_sequence(attention_weights, ecs_regions, full_seq_len):
+    """Map ECS-only attention/saliency weights back to full-sequence positions.
+
+    Args:
+        attention_weights: List of tensors/arrays per sample (1D saliency or 2D attention).
+        ecs_regions: List of [start, end] tuples (1-indexed, inclusive).
+        full_seq_len: Length of the full sequence.
+
+    Returns:
+        List of tensors with full-sequence shape.
+    """
+    if not ecs_regions:
+        return attention_weights
+
+    expanded_weights = []
+    region_lengths = [end - start + 1 for start, end in ecs_regions]
+    region_offsets = np.cumsum([0] + region_lengths[:-1]).tolist()
+
+    for weights in attention_weights:
+        if not isinstance(weights, torch.Tensor):
+            weights = torch.from_numpy(np.asarray(weights)).float()
+        else:
+            weights = weights.cpu().float()
+
+        if weights.ndim == 1:
+            full_weights = torch.zeros(full_seq_len, dtype=weights.dtype)
+            for (start, end), ecs_offset in zip(ecs_regions, region_offsets):
+                region_len = end - start + 1
+                full_start = start - 1
+                full_weights[full_start:full_start + region_len] = weights[
+                    ecs_offset:ecs_offset + region_len
+                ]
+            expanded = full_weights
+        else:
+            expanded = torch.zeros((full_seq_len, full_seq_len), dtype=weights.dtype)
+            for (start, end), ecs_offset in zip(ecs_regions, region_offsets):
+                region_len = end - start + 1
+                full_start = start - 1
+                expanded[full_start:full_start + region_len, :] = weights[
+                    ecs_offset:ecs_offset + region_len, :
+                ]
+                expanded[:, full_start:full_start + region_len] = weights[
+                    :, ecs_offset:ecs_offset + region_len
+                ]
+        expanded_weights.append(expanded)
+
+    return expanded_weights
+
+
 def ablation_study(model, inputs, targets, residue_attrs, k_values, device=None):
     """Zero-out top-k attributed residues and measure loss increase."""
     if device is None:
@@ -127,46 +234,45 @@ def explain_predictions(
 
     all_results = {"samples": [], "ablation_validation": [], "summary": {}}
 
-    with torch.no_grad():
-        for i in range(batch_size):
-            sample = input_embeddings[i].unsqueeze(0).to(device)
-            pred_class = predicted_classes[i].item()
-            cf = confidences[i].item()
+    for i in range(batch_size):
+        sample = input_embeddings[i].unsqueeze(0).to(device)
+        pred_class = predicted_classes[i].item()
+        cf = confidences[i].item()
 
-            residue_attrs, delta = compute_ig_attributions(
+        residue_attrs, delta = compute_ig_attributions(
+            model=model,
+            inputs=sample,
+            baseline=baseline,
+            target_class=pred_class,
+            n_steps=n_steps,
+            device=device,
+        )
+        top_k_results = get_top_k_residues(residue_attrs, k=k)
+
+        sample_result = {
+            "sample_id": i,
+            "input_seq_desc": input_seq_ids[i],
+            "sequence": input_seqs[i],
+            "predicted_class": pred_class,
+            "confidence": cf,
+            "attributions": residue_attrs,
+            "convergence_delta": delta[0].item(),
+            **dict(list(top_k_results[0].items())[1:]),
+        }
+        all_results["samples"].append(sample_result)
+
+        if run_ablation and true_classes is not None:
+            true_class = true_classes[i].item()
+            ablation_results = ablation_study(
                 model=model,
                 inputs=sample,
-                baseline=baseline,
-                target_class=pred_class,
-                n_steps=n_steps,
+                targets=torch.tensor([true_class]).long(),
+                residue_attrs=residue_attrs,
+                k_values=[1, 5, 10],
                 device=device,
             )
-            top_k_results = get_top_k_residues(residue_attrs, k=k)
-
-            sample_result = {
-                "sample_id": i,
-                "input_seq_desc": input_seq_ids[i],
-                "sequence": input_seqs[i],
-                "predicted_class": pred_class,
-                "confidence": cf,
-                "attributions": residue_attrs,
-                "convergence_delta": delta[0].item(),
-                **dict(list(top_k_results[0].items())[1:]),
-            }
-            all_results["samples"].append(sample_result)
-
-            if run_ablation and true_classes is not None:
-                true_class = true_classes[i].item()
-                ablation_results = ablation_study(
-                    model=model,
-                    inputs=sample,
-                    targets=torch.tensor([true_class]).long(),
-                    residue_attrs=residue_attrs,
-                    k_values=[1, 5, 10],
-                    device=device,
-                )
-                ablation_results["sample_id"] = i
-                all_results["ablation_validation"].append(ablation_results)
+            ablation_results["sample_id"] = i
+            all_results["ablation_validation"].append(ablation_results)
 
     deltas = [s["convergence_delta"] for s in all_results["samples"]]
     all_results["summary"] = {
