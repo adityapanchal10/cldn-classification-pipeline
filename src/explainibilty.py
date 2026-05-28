@@ -6,6 +6,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from src.dataset import CLASS_MAP
+
 
 def make_zero_baseline(seq_length, embed_dim=768):
     """Zero-embedding baseline for IG: represents 'no information'."""
