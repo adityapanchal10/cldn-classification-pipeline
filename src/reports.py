@@ -13,6 +13,7 @@ from sklearn.metrics import (
     roc_auc_score,
     roc_curve,
     auc,
+    precision_recall_fscore_support
 )
 # Compact final checkpoint summary 
 
