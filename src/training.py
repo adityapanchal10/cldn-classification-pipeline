@@ -12,6 +12,9 @@ from sklearn.metrics import (
     f1_score,
     recall_score,
     accuracy_score,
+    balanced_accuracy_score,
+    roc_curve,
+    auc,
 )
 
 
