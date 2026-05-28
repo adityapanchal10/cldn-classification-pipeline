@@ -409,7 +409,7 @@ def visualize_attention_explanations(
         len(input_seqs),
         len(predicted_classes),
         len(confidences),
-        attn_weights.shape[0],
+        len(attn_weights),
     )
 
     cmap = LinearSegmentedColormap.from_list(
