@@ -398,6 +398,7 @@ def visualize_attention_explanations(
     max_sequences=10,
     figsize_per_seq=(22, 2),
     save_name=None,
+    is_saliency=False,
 ):
     """
     Visualise attention weights per sequence.
@@ -505,7 +506,10 @@ def visualize_attention_explanations(
         cax.set_yticks([])
         cax.set_xticks([0, 0.5, 1])
         cax.set_xticklabels(["low", "med", "high"], fontsize=7)
-        cax.set_title("Attention Weight", fontsize=7)
+        if is_saliency:
+            cax.set_title("Saliency Score", fontsize=7)
+        else:
+            cax.set_title("Attention Weight", fontsize=7)
 
         if save_name:
             plt.savefig(f"{save_name}.png", bbox_inches="tight", dpi=300)
