@@ -179,24 +179,34 @@ def explain_predictions(
             else "good" if max(deltas) < 0.1 else "check"
         ),
     }
-    # Convert any torch tensors / numpy arrays in results to native Python types
-    def _make_json_serializable(obj):
-        import numpy as _np
+    # Return raw results (keep tensors for downstream functions that expect them)
+    return all_results
 
+
+def results_to_json_compatible(results):
+    """Create a JSON-serializable copy of `results` (converts tensors/ndarrays to lists/scalars).
+
+    Use this when writing explanations to disk via `json.dump()`; keep original `results`
+    (with torch tensors) in memory for visualization or further computation.
+    """
+
+    import numpy as _np
+
+    def _convert(obj):
         if torch.is_tensor(obj):
             t = obj.detach().cpu()
             return t.item() if t.numel() == 1 else t.tolist()
         if isinstance(obj, _np.ndarray):
             return obj.tolist()
         if isinstance(obj, dict):
-            return {k: _make_json_serializable(v) for k, v in obj.items()}
+            return {k: _convert(v) for k, v in obj.items()}
         if isinstance(obj, (list, tuple)):
-            return [_make_json_serializable(v) for v in obj]
+            return [_convert(v) for v in obj]
         if isinstance(obj, (_np.integer, _np.floating)):
             return obj.item()
         return obj
 
-    return _make_json_serializable(all_results)
+    return _convert(results)
 
 
 def print_results(results):
