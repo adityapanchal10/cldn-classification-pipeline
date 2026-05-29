@@ -4,6 +4,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import os
+import time
 from tabulate import tabulate
 from matplotlib import pyplot as plt
 import seaborn as sns
@@ -260,6 +261,13 @@ def train_classifier(
     best_primary_metric = 0.0
     patience_counter = 0
 
+    print(
+        f"Training started on device: {device}\nmodel: {classifier.__class__.__name__}\nnum_epochs: {num_epochs}\noptimizer: AdamW (lr={optimizer_lr}, weight_decay={optimizer_weight_decay})\ncriterion: {criterion.__class__.__name__}\nwarmup_epochs: {warmup_epochs}\ntrain_patience: {patience} epochs\nschedular_patience: {schedular_patience} epochs\n"
+    )
+    if device.type == "cuda":
+        torch.cuda.synchronize()
+    start_time = time.time()
+
     for epoch in range(num_epochs):
         # Training
         classifier.train()
@@ -408,6 +416,11 @@ def train_classifier(
     history["best_val_targets"] = history["val_targets"][best_idx]
     history["best_val_probs"] = history["val_probs"][best_idx]
     history["best_val_preds"] = np.argmax(history["best_val_probs"], axis=1)
+
+    if device.type == "cuda":
+        torch.cuda.synchronize()
+    end_time = time.time()
+    print(f"\nTraining completed in {(end_time - start_time)/60:.2f} minutes.")
     return history
 
 
