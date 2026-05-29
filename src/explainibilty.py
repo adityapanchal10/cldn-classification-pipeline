@@ -388,6 +388,8 @@ def visualize_sequence_explanations(
     samples = results["samples"]
     num_to_plot = min(len(samples), max_sequences)
 
+    collected_images = [] if save_name else None
+
     cmap = LinearSegmentedColormap.from_list("neg_white_pos", ["red", "white", "green"])
 
     def normalize_attributions(attr_vec):
@@ -487,10 +489,27 @@ def visualize_sequence_explanations(
         cax.set_xticklabels(["neg", "0", "pos"], fontsize=7)
         cax.set_title("Contribution to Prediction", fontsize=7)
 
-        if save_name:
-            plt.savefig(f"{save_name}.png", bbox_inches="tight", dpi=300)
+        if collected_images is not None:
+            fig.canvas.draw()
+            width, height = fig.canvas.get_width_height()
+            buffer = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+            image = buffer.reshape(height, width, 3)
+            collected_images.append(image)
 
         plt.show()
+
+    if collected_images:
+        max_width = max(img.shape[1] for img in collected_images)
+        total_height = sum(img.shape[0] for img in collected_images)
+        combined = np.ones((total_height, max_width, 3), dtype=np.uint8) * 255
+
+        y_offset = 0
+        for img in collected_images:
+            h, w, _ = img.shape
+            combined[y_offset:y_offset + h, :w, :] = img
+            y_offset += h
+
+        plt.imsave(f"{save_name}.png", combined)
 
 
 def visualize_attention_explanations(
@@ -517,6 +536,8 @@ def visualize_attention_explanations(
         len(confidences),
         len(attn_weights),
     )
+
+    collected_images = [] if save_name else None
 
     cmap = LinearSegmentedColormap.from_list(
         "low_high", ["white", "lavender", "purple"]
@@ -617,10 +638,27 @@ def visualize_attention_explanations(
         else:
             cax.set_title("Attention Weight", fontsize=7)
 
-        if save_name:
-            plt.savefig(f"{save_name}.png", bbox_inches="tight", dpi=300)
+        if collected_images is not None:
+            fig.canvas.draw()
+            width, height = fig.canvas.get_width_height()
+            buffer = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+            image = buffer.reshape(height, width, 3)
+            collected_images.append(image)
 
         plt.show()
+
+    if collected_images:
+        max_width = max(img.shape[1] for img in collected_images)
+        total_height = sum(img.shape[0] for img in collected_images)
+        combined = np.ones((total_height, max_width, 3), dtype=np.uint8) * 255
+
+        y_offset = 0
+        for img in collected_images:
+            h, w, _ = img.shape
+            combined[y_offset:y_offset + h, :w, :] = img
+            y_offset += h
+
+        plt.imsave(f"{save_name}.png", combined)
 
 
 def compute_attention_weights(model, inputs):
