@@ -492,8 +492,8 @@ def visualize_sequence_explanations(
         if collected_images is not None:
             fig.canvas.draw()
             width, height = fig.canvas.get_width_height()
-            buffer = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-            image = buffer.reshape(height, width, 3)
+            buffer = np.asarray(fig.canvas.buffer_rgba())
+            image = buffer.reshape(height, width, 4)[:, :, :3]
             collected_images.append(image)
 
         plt.show()
@@ -641,8 +641,8 @@ def visualize_attention_explanations(
         if collected_images is not None:
             fig.canvas.draw()
             width, height = fig.canvas.get_width_height()
-            buffer = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-            image = buffer.reshape(height, width, 3)
+            buffer = np.asarray(fig.canvas.buffer_rgba())
+            image = buffer.reshape(height, width, 4)[:, :, :3]
             collected_images.append(image)
 
         plt.show()
