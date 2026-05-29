@@ -412,7 +412,7 @@ def visualize_sequence_explanations(
         confidence = sample["confidence"]
 
         # Build full attribution vector and normalise to [-1, 1]
-        full_attr = np.array(sample["attributions"].squeeze().cpu(), dtype=float) if torch.is_tensor(sample["attributions"]) else np.array(sample["attributions"].squeeze().cpu(), dtype=float)
+        full_attr = np.array(sample["attributions"].squeeze().detach().cpu().numpy(), dtype=float) if torch.is_tensor(sample["attributions"]) else np.array(sample["attributions"].squeeze().cpu(), dtype=float)
         norm_attr = normalize_attributions(full_attr)
         colors = cmap((norm_attr + 1) / 2.0)
 
