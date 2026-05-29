@@ -2,6 +2,7 @@ from captum.attr import IntegratedGradients
 from typing import Dict
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib import pyplot as plt
+import io
 import numpy as np
 import torch
 import torch.nn as nn
@@ -490,10 +491,14 @@ def visualize_sequence_explanations(
         cax.set_title("Contribution to Prediction", fontsize=7)
 
         if collected_images is not None:
-            fig.canvas.draw()
-            width, height = fig.canvas.get_width_height()
-            buffer = np.asarray(fig.canvas.buffer_rgba())
-            image = buffer.reshape(height, width, 4)[:, :, :3]
+            buffer = io.BytesIO()
+            fig.savefig(buffer, format="png", bbox_inches="tight", dpi=300)
+            buffer.seek(0)
+            image = plt.imread(buffer)
+            if image.shape[-1] == 4:
+                image = image[:, :, :3]
+            if image.dtype != np.uint8:
+                image = (image * 255).astype(np.uint8)
             collected_images.append(image)
 
         plt.show()
@@ -639,10 +644,14 @@ def visualize_attention_explanations(
             cax.set_title("Attention Weight", fontsize=7)
 
         if collected_images is not None:
-            fig.canvas.draw()
-            width, height = fig.canvas.get_width_height()
-            buffer = np.asarray(fig.canvas.buffer_rgba())
-            image = buffer.reshape(height, width, 4)[:, :, :3]
+            buffer = io.BytesIO()
+            fig.savefig(buffer, format="png", bbox_inches="tight", dpi=300)
+            buffer.seek(0)
+            image = plt.imread(buffer)
+            if image.shape[-1] == 4:
+                image = image[:, :, :3]
+            if image.dtype != np.uint8:
+                image = (image * 255).astype(np.uint8)
             collected_images.append(image)
 
         plt.show()
