@@ -12,7 +12,7 @@ from Bio import SeqIO
 import esm
 
 
-def load_msa_transformer(model_name: str = "esm_msa1b_t12_100M_UR50S"):
+def load_esm_model(model_name: str = "esm_msa1b_t12_100M_UR50S"):
     model, alphabet = esm.pretrained.load_model_and_alphabet(model_name)
     model.eval()
     return model, alphabet
@@ -21,24 +21,101 @@ def load_msa_transformer(model_name: str = "esm_msa1b_t12_100M_UR50S"):
 class ESMEmbedder:
     def __init__(self, model_name: str = "esm_msa1b_t12_100M_UR50S", device=None):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu") if device is None else torch.device(device)
-        self.model, self.alphabet = load_msa_transformer(model_name)
+        self.model, self.alphabet = load_esm_model(model_name)
         self.batch_converter = self.alphabet.get_batch_converter()
         self.model = self.model.to(self.device)
         self.valid_chars = set(self.alphabet.all_toks)
         self.model_name = model_name
+        self.is_msa_model = "msa" in model_name.lower()
+        self.repr_layer = None
+        self.embed_dim = None
+        self.pad_char = "-" if self.is_msa_model else "X"
+        self._detect_model_properties()
         self.model.eval()
 
     def _clean_sequence(self, seq: str) -> str:
-        return "".join(c if c in self.valid_chars else "-" for c in seq).upper()
+        return "".join(c if c in self.valid_chars else self.pad_char for c in seq).upper()
 
-    @staticmethod
-    def pad_or_truncate(sequences, seq_length, pad_char="-"):
+    def pad_or_truncate(self, sequences, seq_length, pad_char=None):
+        pad_char = self.pad_char if pad_char is None else pad_char
         return [
             seq[:seq_length] if len(seq) > seq_length else seq.ljust(seq_length, pad_char)
             for seq in sequences
         ]
 
+    def _detect_model_properties(self):
+        # Try several common attribute locations for layer count / embed dim
+        num_layers = None
+        if hasattr(self.model, "num_layers"):
+            try:
+                num_layers = int(getattr(self.model, "num_layers"))
+            except Exception:
+                num_layers = None
+
+        if num_layers is None and hasattr(self.model, "args"):
+            for name in ("num_layers", "n_layer", "nlayers", "encoder_layers"):
+                v = getattr(self.model.args, name, None)
+                if v is not None:
+                    try:
+                        num_layers = int(v)
+                        break
+                    except Exception:
+                        continue
+
+        if num_layers is None and hasattr(self.model, "cfg"):
+            for name in ("num_layers", "n_layer", "nlayers"):
+                v = getattr(self.model.cfg, name, None)
+                if v is not None:
+                    try:
+                        num_layers = int(v)
+                        break
+                    except Exception:
+                        continue
+
+        # If we found a candidate, use it; otherwise run a tiny forward to inspect repr keys
+        if num_layers is not None:
+            self.repr_layer = num_layers
+            print(f"Detected num_layers attribute: using repr_layer={self.repr_layer}")
+        else:
+            # minimal safe forward to inspect available representation layers and embedding dim
+            try:
+                if self.is_msa_model:
+                    labels, strs, tokens = self.batch_converter([[("_s0", "A" * 8), ("_s1", "A" * 8)]])
+                else:
+                    labels, strs, tokens = self.batch_converter([("_s0", "A" * 8)])
+                tokens = tokens.to(self.device)
+                with torch.no_grad():
+                    results = self.model(tokens, repr_layers=[0], return_contacts=False)
+                keys = list(results.get("representations", {}).keys())
+                if keys:
+                    # keys are integers (layer ids) or strings; coerce to ints where possible
+                    int_keys = []
+                    for k in keys:
+                        try:
+                            int_keys.append(int(k))
+                        except Exception:
+                            pass
+                    if int_keys:
+                        self.repr_layer = max(int_keys)
+                        rep = results["representations"][self.repr_layer]
+                        self.embed_dim = rep.shape[-1]
+                        print(f"Detected representation keys: {keys}; using repr_layer={self.repr_layer}, embed_dim={self.embed_dim}")
+                # fallback defaults
+                if self.repr_layer is None:
+                    self.repr_layer = getattr(self.model, "num_layers", 12)
+                    print(f"Fallback repr_layer set to {self.repr_layer}")
+                if self.embed_dim is None:
+                    self.embed_dim = getattr(self.model, "embed_dim", None) or (getattr(self.model, "args", None) and getattr(self.model.args, "embed_dim", None)) or 768
+                    print(f"Fallback embed_dim set to {self.embed_dim}")
+            except Exception:
+                # final fallback
+                self.repr_layer = getattr(self.model, "num_layers", 12)
+                self.embed_dim = getattr(self.model, "embed_dim", None) or (getattr(self.model, "args", None) and getattr(self.model.args, "embed_dim", None)) or 768
+
     def embed_msa(self, sequences, seq_length=190, max_msa_depth=300):
+        if not self.is_msa_model:
+            raise ValueError("embed_msa() requires an MSA Transformer checkpoint such as esm_msa1b_t12_100M_UR50S.")
+
         sequences = [self._clean_sequence(s) for s in sequences]
         sequences = self.pad_or_truncate(sequences, seq_length)
         n_sequences = len(sequences)
@@ -53,9 +130,9 @@ class ESMEmbedder:
             batch_tokens = batch_tokens.to(self.device)
 
             with torch.no_grad():
-                results = self.model(batch_tokens, repr_layers=[12], return_contacts=False)
+                results = self.model(batch_tokens, repr_layers=[self.repr_layer], return_contacts=False)
 
-            token_emb = results["representations"][12]
+            token_emb = results["representations"][self.repr_layer]
             token_emb = token_emb[:, :, 1:, :]
             token_emb = token_emb.squeeze(0)
             all_embeddings.append(token_emb.cpu())
@@ -76,15 +153,21 @@ class ESMEmbedder:
             end = min(start + batch_size, len(sequences))
             batch = sequences[start:end]
 
-            msa_inputs = [[(f"seq{i}", seq)] for i, seq in enumerate(batch)]
-            _, _, batch_tokens = self.batch_converter(msa_inputs)
+            if self.is_msa_model:
+                batch_inputs = [[(f"seq{start + i}", seq)] for i, seq in enumerate(batch)]
+            else:
+                batch_inputs = [(f"seq{start + i}", seq) for i, seq in enumerate(batch)]
+            _, _, batch_tokens = self.batch_converter(batch_inputs)
             batch_tokens = batch_tokens.to(self.device)
 
             with torch.no_grad():
-                results = self.model(batch_tokens, repr_layers=[12], return_contacts=False)
+                results = self.model(batch_tokens, repr_layers=[self.repr_layer], return_contacts=False)
 
-            token_emb = results["representations"][12]
-            token_emb = token_emb[:, 0, 1:, :]
+            token_emb = results["representations"][self.repr_layer]
+            if self.is_msa_model:
+                token_emb = token_emb[:, 0, 1:, :]
+            else:
+                token_emb = token_emb[:, 1:-1, :]
             all_embeddings.append(token_emb.cpu())
 
         output_embeddings = torch.cat(all_embeddings, dim=0)
