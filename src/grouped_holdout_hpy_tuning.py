@@ -23,9 +23,11 @@ DEFAULT_HP = {
     "batch_size": 64,
 }
 
+
 def _config_hash(cfg):
     payload = json.dumps(cfg, sort_keys=True)
     return hashlib.md5(payload.encode("utf-8")).hexdigest()
+
 
 def _load_cache(path):
     file_path = os.path.join(path, "grouped_holdout_tuning_cache.json")
@@ -34,11 +36,13 @@ def _load_cache(path):
             return json.load(f)
     return {}
 
+
 def _save_cache(cache, path):
     save_path = os.path.join(path, "grouped_holdout_tuning_cache.json")
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     with open(save_path, "w", encoding="utf-8") as f:
         json.dump(cache, f, indent=2)
+
 
 def _build_grid(space):
     keys = list(space.keys())
@@ -46,15 +50,21 @@ def _build_grid(space):
         cfg = dict(zip(keys, values))
         yield cfg
 
+
 def _summarize_grouped_results(grouped_results):
-    metrics_df = pd.DataFrame([{
-        "accuracy": r["accuracy"],
-        "macro_recall": r["macro_recall"],
-        "macro_f1": r["macro_f1"],
-        "recall_barrier": r["recall_barrier"],
-        "recall_cation": r["recall_cation"],
-        "recall_anion": r["recall_anion"],
-    } for r in grouped_results])
+    metrics_df = pd.DataFrame(
+        [
+            {
+                "accuracy": r["accuracy"],
+                "macro_recall": r["macro_recall"],
+                "macro_f1": r["macro_f1"],
+                "recall_barrier": r["recall_barrier"],
+                "recall_cation": r["recall_cation"],
+                "recall_anion": r["recall_anion"],
+            }
+            for r in grouped_results
+        ]
+    )
     return {
         "macro_f1_mean": float(metrics_df["macro_f1"].mean()),
         "macro_f1_std": float(metrics_df["macro_f1"].std()),
@@ -62,6 +72,7 @@ def _summarize_grouped_results(grouped_results):
         "recall_cation_mean": float(metrics_df["recall_cation"].mean()),
         "recall_anion_mean": float(metrics_df["recall_anion"].mean()),
     }
+
 
 def pick_best_config(df_results, default_hp):
     if df_results is None or df_results.empty:
@@ -71,7 +82,17 @@ def pick_best_config(df_results, default_hp):
     merged.update(best_cfg)
     return merged
 
-def run_grouped_holdout_trial(cfg, cache, cache_path, file_meta=None, embeddings_by_file=None, model=None, seq_len=None, device="cuda"):
+
+def run_grouped_holdout_trial(
+    cfg,
+    cache,
+    cache_path,
+    file_meta=None,
+    embeddings_by_file=None,
+    model=None,
+    seq_len=None,
+    device="cuda",
+):
     key = _config_hash(cfg)
     if key in cache:
         return cache[key]
@@ -93,7 +114,7 @@ def run_grouped_holdout_trial(cfg, cache, cache_path, file_meta=None, embeddings
         optimizer_lr=cfg["optimizer_lr"],
         optimizer_weight_decay=cfg["optimizer_weight_decay"],
         schedular_patience=cfg["schedular_patience"],
-        checkpoint_dir=None
+        checkpoint_dir=None,
     )
 
     summary = _summarize_grouped_results(grouped_results)
@@ -102,7 +123,18 @@ def run_grouped_holdout_trial(cfg, cache, cache_path, file_meta=None, embeddings
     _save_cache(cache, cache_path)
     return result
 
-def run_grouped_holdout_hyperparameter_tuning(search_space, max_trails=12, cache_path=".", save_path=".", file_meta=None, embeddings_by_file=None, model=None, seq_len=None, device="cuda"):
+
+def run_grouped_holdout_hyperparameter_tuning(
+    search_space,
+    max_trails=12,
+    cache_path=".",
+    save_path=".",
+    file_meta=None,
+    embeddings_by_file=None,
+    model=None,
+    seq_len=None,
+    device="cuda",
+):
     cache = _load_cache(cache_path)
     results = []
 
@@ -111,7 +143,18 @@ def run_grouped_holdout_hyperparameter_tuning(search_space, max_trails=12, cache
             continue
         if cfg["weighted_ce_power"] < 0.0:
             cfg = {k: v for k, v in cfg.items() if k != "weighted_ce_power"}
-        results.append(run_grouped_holdout_trial(cfg, cache, cache_path, file_meta, embeddings_by_file, model, seq_len, device))
+        results.append(
+            run_grouped_holdout_trial(
+                cfg,
+                cache,
+                cache_path,
+                file_meta,
+                embeddings_by_file,
+                model,
+                seq_len,
+                device,
+            )
+        )
         if len(results) >= max_trails:
             break
         time.sleep(0.1)
@@ -132,4 +175,3 @@ def run_grouped_holdout_hyperparameter_tuning(search_space, max_trails=12, cache
         json.dump(BEST_CFG, f, indent=2)
 
     return BEST_CFG
-    

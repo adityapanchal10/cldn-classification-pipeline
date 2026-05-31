@@ -8,6 +8,7 @@ import numpy as np
 from src.dataset import MSADataset
 from src.embedder import MSAEmbedder
 
+
 def infer_label_from_item_id(item_id: str) -> int:
     key = item_id.strip().lower()
 
@@ -33,6 +34,7 @@ def infer_label_from_item_id(item_id: str) -> int:
 
     raise ValueError(f"Cannot infer label for item_id='{item_id}'")
 
+
 def normalize_source_path(source_path: str) -> str:
     raw = (source_path or "").strip()
     if not raw:
@@ -43,7 +45,7 @@ def normalize_source_path(source_path: str) -> str:
         return str(p)
 
     if raw.startswith("/content/drive/"):
-        alt = "drive/" + raw[len("/content/drive/"):]
+        alt = "drive/" + raw[len("/content/drive/") :]
         if Path(alt).exists():
             return alt
 
@@ -54,13 +56,18 @@ def normalize_source_path(source_path: str) -> str:
 
     return raw
 
+
 def find_manifest_path(manifest_candidates):
-    manifest_path = next((Path(p) for p in manifest_candidates if Path(p).exists()), None)
+    manifest_path = next(
+        (Path(p) for p in manifest_candidates if Path(p).exists()), None
+    )
     if manifest_path is None:
         raise FileNotFoundError(
-            "Could not find manifest file in provided candidates: " + str(manifest_candidates)
+            "Could not find manifest file in provided candidates: "
+            + str(manifest_candidates)
         )
     return manifest_path
+
 
 def resolve_artifact_path(row, manifest_file):
     raw_artifact = (row.get("artifact_path") or "").strip()
@@ -79,6 +86,7 @@ def resolve_artifact_path(row, manifest_file):
 
     return local_default
 
+
 def to_tensor_artifact(obj, artifact_path):
     if torch.is_tensor(obj):
         return obj.float()
@@ -93,6 +101,7 @@ def to_tensor_artifact(obj, artifact_path):
             return first_tensor.float()
 
     return torch.tensor(obj, dtype=torch.float32)
+
 
 def read_manifest_rows(manifest_path, unique_item_ids=False):
     rows = []
@@ -117,6 +126,7 @@ def read_manifest_rows(manifest_path, unique_item_ids=False):
 
     return rows
 
+
 def infer_label_from_header(header_text: str) -> int:
     lower_header = header_text.lower()
     marker = "major_label="
@@ -125,6 +135,7 @@ def infer_label_from_header(header_text: str) -> int:
         return infer_label_from_item_id(label_token)
 
     raise ValueError(f"Could not infer label from header: {header_text}")
+
 
 def load_grouped_embeddings_from_manifest(
     manifest_candidates,
@@ -232,6 +243,7 @@ def load_grouped_embeddings_from_manifest(
         "all_file_names": all_file_names,
     }
 
+
 def load_single_embeddings_from_manifest(manifest_candidates):
     """
     Load single-manifest data and return ONLY train/val fields:
@@ -267,7 +279,11 @@ def load_single_embeddings_from_manifest(manifest_candidates):
 
     for row in manifest_entries:
         raw_split = (row.get("embedding_mode") or "unknown").strip().lower()
-        split_key = "val" if raw_split in {"val", "test"} else "train" if raw_split == "train" else None
+        split_key = (
+            "val"
+            if raw_split in {"val", "test"}
+            else "train" if raw_split == "train" else None
+        )
         if split_key is None:
             continue
 
@@ -293,7 +309,9 @@ def load_single_embeddings_from_manifest(manifest_candidates):
         seq_field = (row.get("sequence_id") or "").strip()
         seq_ids = [s.strip() for s in seq_field.split(",") if s.strip()]
         if not seq_ids:
-            raise ValueError(f"No sequence IDs found for row in manifest: {manifest_path}")
+            raise ValueError(
+                f"No sequence IDs found for row in manifest: {manifest_path}"
+            )
 
         if emb.shape[0] != len(seq_ids):
             raise ValueError(
@@ -330,7 +348,9 @@ def load_single_embeddings_from_manifest(manifest_candidates):
         split_payload[split_key]["headers"].extend(row_headers)
         split_payload[split_key]["sequences"].extend(row_sequences)
 
-        print(f"Loaded single split '{split_key}': {tuple(emb.shape)} from {artifact_path}")
+        print(
+            f"Loaded single split '{split_key}': {tuple(emb.shape)} from {artifact_path}"
+        )
 
     def _stack_or_empty(tensors):
         if not tensors:
@@ -354,15 +374,23 @@ def load_single_embeddings_from_manifest(manifest_candidates):
         raise ValueError(
             f"Val size mismatch: embeddings={val_embeddings.shape[0]} vs labels={val_labels.shape[0]}"
         )
-    if train_embeddings.shape[0] != len(train_headers) or train_embeddings.shape[0] != len(train_sequences):
+    if train_embeddings.shape[0] != len(train_headers) or train_embeddings.shape[
+        0
+    ] != len(train_sequences):
         raise ValueError("Train embeddings/header/sequence counts are inconsistent")
-    if val_embeddings.shape[0] != len(val_headers) or val_embeddings.shape[0] != len(val_sequences):
+    if val_embeddings.shape[0] != len(val_headers) or val_embeddings.shape[0] != len(
+        val_sequences
+    ):
         raise ValueError("Val embeddings/header/sequence counts are inconsistent")
 
     print(f"Single train embeddings: {tuple(train_embeddings.shape)}")
     print(f"Single val embeddings: {tuple(val_embeddings.shape)}")
-    print(f"Single train labels: {Counter(train_labels.numpy()) if train_labels.numel() > 0 else {}}")
-    print(f"Single val labels: {Counter(val_labels.numpy()) if val_labels.numel() > 0 else {}}")
+    print(
+        f"Single train labels: {Counter(train_labels.numpy()) if train_labels.numel() > 0 else {}}"
+    )
+    print(
+        f"Single val labels: {Counter(val_labels.numpy()) if val_labels.numel() > 0 else {}}"
+    )
 
     return {
         "manifest_path": manifest_path,

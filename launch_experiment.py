@@ -31,28 +31,14 @@ save_metadata(CONFIG_PATH, run_dir)
 if cfg["evaluation"]["mode"] == "grouped":
     execute_notebook(
         input_path="notebooks/train_grouped_holdout.ipynb",
-
-        output_path=(
-            run_dir / "train.ipynb"
-        ),
-
-        parameters={
-            "config_path": CONFIG_PATH,
-            "run_dir": str(run_dir)
-        }
+        output_path=(run_dir / "train.ipynb"),
+        parameters={"config_path": CONFIG_PATH, "run_dir": str(run_dir)},
     )
 elif cfg["evaluation"]["mode"] == "single":
     execute_notebook(
         input_path="notebooks/train_single_split.ipynb",
-
-        output_path=(
-            run_dir / "train.ipynb"
-        ),
-
-        parameters={
-            "config_path": CONFIG_PATH,
-            "run_dir": str(run_dir)
-        }
+        output_path=(run_dir / "train.ipynb"),
+        parameters={"config_path": CONFIG_PATH, "run_dir": str(run_dir)},
     )
 
 # -------------------
@@ -61,15 +47,8 @@ elif cfg["evaluation"]["mode"] == "single":
 
 execute_notebook(
     input_path="notebooks/inference.ipynb",
-
-    output_path=(
-        run_dir / "inference.ipynb"
-    ),
-
-    parameters={
-        "config_path": CONFIG_PATH,
-        "run_dir": str(run_dir)
-    }
+    output_path=(run_dir / "inference.ipynb"),
+    parameters={"config_path": CONFIG_PATH, "run_dir": str(run_dir)},
 )
 
 

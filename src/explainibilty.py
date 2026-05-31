@@ -105,8 +105,8 @@ def map_ecs_explanations_to_full_sequence(results, ecs_regions, full_seq_len):
         for start, end in ecs_regions:
             region_len = end - start + 1
             full_start = start - 1
-            full_attr[full_start:full_start + region_len] = ecs_attr_np[
-                ecs_idx:ecs_idx + region_len
+            full_attr[full_start : full_start + region_len] = ecs_attr_np[
+                ecs_idx : ecs_idx + region_len
             ]
             ecs_idx += region_len
 
@@ -153,8 +153,8 @@ def map_ecs_attention_to_full_sequence(attention_weights, ecs_regions, full_seq_
             for (start, end), ecs_offset in zip(ecs_regions, region_offsets):
                 region_len = end - start + 1
                 full_start = start - 1
-                full_weights[full_start:full_start + region_len] = weights[
-                    ecs_offset:ecs_offset + region_len
+                full_weights[full_start : full_start + region_len] = weights[
+                    ecs_offset : ecs_offset + region_len
                 ]
             expanded = full_weights
         else:
@@ -162,11 +162,11 @@ def map_ecs_attention_to_full_sequence(attention_weights, ecs_regions, full_seq_
             for (start, end), ecs_offset in zip(ecs_regions, region_offsets):
                 region_len = end - start + 1
                 full_start = start - 1
-                expanded[full_start:full_start + region_len, :] = weights[
-                    ecs_offset:ecs_offset + region_len, :
+                expanded[full_start : full_start + region_len, :] = weights[
+                    ecs_offset : ecs_offset + region_len, :
                 ]
-                expanded[:, full_start:full_start + region_len] = weights[
-                    :, ecs_offset:ecs_offset + region_len
+                expanded[:, full_start : full_start + region_len] = weights[
+                    :, ecs_offset : ecs_offset + region_len
                 ]
         expanded_weights.append(expanded)
 
@@ -374,6 +374,7 @@ def print_results(results):
                     f"    Predicted class after ablation: {metrics['predicted_class_after_abl']}"
                 )
 
+
 def visualize_sequence_explanations(
     results,
     true_labels=None,
@@ -415,7 +416,13 @@ def visualize_sequence_explanations(
         confidence = sample["confidence"]
 
         # Build full attribution vector and normalise to [-1, 1]
-        full_attr = np.array(sample["attributions"].squeeze().detach().cpu().numpy(), dtype=float) if torch.is_tensor(sample["attributions"]) else np.array(sample["attributions"].squeeze().cpu(), dtype=float)
+        full_attr = (
+            np.array(
+                sample["attributions"].squeeze().detach().cpu().numpy(), dtype=float
+            )
+            if torch.is_tensor(sample["attributions"])
+            else np.array(sample["attributions"].squeeze().cpu(), dtype=float)
+        )
         norm_attr = normalize_attributions(full_attr)
         colors = cmap((norm_attr + 1) / 2.0)
 
@@ -511,7 +518,7 @@ def visualize_sequence_explanations(
         y_offset = 0
         for img in collected_images:
             h, w, _ = img.shape
-            combined[y_offset:y_offset + h, :w, :] = img
+            combined[y_offset : y_offset + h, :w, :] = img
             y_offset += h
 
         plt.imsave(f"{save_name}.png", combined)
@@ -664,7 +671,7 @@ def visualize_attention_explanations(
         y_offset = 0
         for img in collected_images:
             h, w, _ = img.shape
-            combined[y_offset:y_offset + h, :w, :] = img
+            combined[y_offset : y_offset + h, :w, :] = img
             y_offset += h
 
         plt.imsave(f"{save_name}.png", combined)

@@ -6,18 +6,10 @@ def create_run(cfg):
 
     run_name = cfg["experiment"]["name"]
 
-    timestamp = datetime.now().strftime(
-        "%Y%m%d_%H%M%S"
-    )
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    run_dir = (
-        Path(cfg["path"]["runs_root"])
-        / f"{run_name} {timestamp}"
-    )
+    run_dir = Path(cfg["path"]["runs_root"]) / f"{run_name} {timestamp}"
 
-    run_dir.mkdir(
-        parents=True,
-        exist_ok=True
-    )
+    run_dir.mkdir(parents=True, exist_ok=True)
 
     return run_dir

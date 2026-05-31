@@ -2,9 +2,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class SimpleCNNClassifier(nn.Module):
-    def __init__(self, n_classes=3, embedding_dim=768, n_filters=100,
-                 filter_sizes=[3, 4, 5], dropout=0.1):
+    def __init__(
+        self,
+        n_classes=3,
+        embedding_dim=768,
+        n_filters=100,
+        filter_sizes=[3, 4, 5],
+        dropout=0.1,
+    ):
         super().__init__()
 
         # Normalization layer for input embeddings
@@ -12,12 +19,16 @@ class SimpleCNNClassifier(nn.Module):
 
         # Define multiple convolutional layers with different filter sizes
         # Each filter looks at 'fs' words at a time across the full embedding width
-        self.convs = nn.ModuleList([
-            nn.Conv2d(in_channels=1,
-                      out_channels=n_filters,
-                      kernel_size=(fs, embedding_dim))
-            for fs in filter_sizes
-        ])
+        self.convs = nn.ModuleList(
+            [
+                nn.Conv2d(
+                    in_channels=1,
+                    out_channels=n_filters,
+                    kernel_size=(fs, embedding_dim),
+                )
+                for fs in filter_sizes
+            ]
+        )
 
         # Final fully connected layer
         self.fc = nn.Linear(len(filter_sizes) * n_filters, n_classes)
@@ -51,7 +62,7 @@ class SimpleCNNClassifier(nn.Module):
                 # Because the convolution reduces the sequence length by (fs - 1),
                 # we align the mask by starting from the end of the first window.
                 # output_mask shape: [Batch, L_out]
-                output_mask = mask[:, fs-1:]
+                output_mask = mask[:, fs - 1 :]
 
                 # Expand mask to [Batch, 1, L_out] to match the 'conved' tensor
                 output_mask = output_mask.unsqueeze(1)

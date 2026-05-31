@@ -1,5 +1,6 @@
 from pathlib import Path
 
+
 def get_embedding_dir(cfg):
     dataset_type = cfg["data"]["dataset_type"]
     split_mode = cfg["evaluation"]["mode"]

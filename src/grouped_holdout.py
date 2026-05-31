@@ -12,6 +12,7 @@ from sklearn.metrics import confusion_matrix, f1_score, recall_score, accuracy_s
 
 from src.training import make_weighted_ce, train_classifier
 
+
 def compute_full_val_metrics(
     val_targets,
     val_probs,
@@ -22,16 +23,19 @@ def compute_full_val_metrics(
     (all classes present in the val set).
     """
     val_targets = np.array(val_targets)
-    val_probs   = np.array(val_probs)
-    val_preds   = val_probs.argmax(axis=1)
-    n_classes   = val_probs.shape[1]
-    all_labels  = list(range(n_classes))
+    val_probs = np.array(val_probs)
+    val_preds = val_probs.argmax(axis=1)
+    n_classes = val_probs.shape[1]
+    all_labels = list(range(n_classes))
 
     acc = (val_preds == val_targets).mean() * 100
 
     macro_f1 = f1_score(
-        val_targets, val_preds,
-        average='macro', labels=all_labels, zero_division=0,
+        val_targets,
+        val_preds,
+        average="macro",
+        labels=all_labels,
+        zero_division=0,
     )
 
     # AUC-ROC (requires >= 2 classes present)
@@ -40,16 +44,20 @@ def compute_full_val_metrics(
         try:
             import warnings
             from sklearn.exceptions import UndefinedMetricWarning
+
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", UndefinedMetricWarning)
                 auc_val = roc_auc_score(
-                    val_targets, val_probs,
-                    multi_class="ovr", average="macro", labels=all_labels,
+                    val_targets,
+                    val_probs,
+                    multi_class="ovr",
+                    average="macro",
+                    labels=all_labels,
                 )
         except ValueError:
-            auc_val = float('nan')
+            auc_val = float("nan")
     else:
-        auc_val = float('nan')
+        auc_val = float("nan")
 
     # Per-class recall
     per_class_recall = {}
@@ -58,14 +66,15 @@ def compute_full_val_metrics(
         if mask.any():
             per_class_recall[cname] = (val_preds[mask] == cid).mean() * 100
         else:
-            per_class_recall[cname] = float('nan')
+            per_class_recall[cname] = float("nan")
 
     return {
-        "acc":              acc,
-        "macro_f1":         macro_f1,
-        "auc":              auc_val,
+        "acc": acc,
+        "macro_f1": macro_f1,
+        "auc": auc_val,
         "per_class_recall": per_class_recall,
     }
+
 
 def make_grouped_mixed_splits(file_meta):
     """
@@ -74,22 +83,25 @@ def make_grouped_mixed_splits(file_meta):
       train = all remaining files
     """
     barrier_files = [idx for idx, info in file_meta.items() if info["label"] == 0]
-    cation_files  = [idx for idx, info in file_meta.items() if info["label"] == 1]
-    anion_files   = [idx for idx, info in file_meta.items() if info["label"] == 2]
+    cation_files = [idx for idx, info in file_meta.items() if info["label"] == 1]
+    anion_files = [idx for idx, info in file_meta.items() if info["label"] == 2]
 
     splits = []
     for b, c, a in itertools.product(barrier_files, cation_files, anion_files):
         test_idx = [b, c, a]
         train_idx = [idx for idx in sorted(file_meta.keys()) if idx not in test_idx]
 
-        splits.append({
-            "test_file_idx": test_idx,
-            "train_file_idx": train_idx,
-            "test_file_names": [file_meta[i]["fname"] for i in test_idx],
-            "train_file_names": [file_meta[i]["fname"] for i in train_idx],
-        })
+        splits.append(
+            {
+                "test_file_idx": test_idx,
+                "train_file_idx": train_idx,
+                "test_file_names": [file_meta[i]["fname"] for i in test_idx],
+                "train_file_names": [file_meta[i]["fname"] for i in train_idx],
+            }
+        )
 
     return splits
+
 
 def build_grouped_train_loader(
     train_file_idx,
@@ -108,9 +120,9 @@ def build_grouped_train_loader(
     train_pid_list = []
 
     for file_idx in train_file_idx:
-        emb   = embeddings_by_file[file_idx]
+        emb = embeddings_by_file[file_idx]
         label = file_meta[file_idx]["label"]
-        nseq  = emb.shape[0]
+        nseq = emb.shape[0]
 
         train_emb_list.append(emb)
         train_lbl_list.extend([label] * nseq)
@@ -134,16 +146,15 @@ def build_grouped_train_loader(
             dtype=torch.float,
         )
         sampler = WeightedRandomSampler(
-            sample_weights,
-            len(sample_weights),
-            replacement=True
+            sample_weights, len(sample_weights), replacement=True
         )
         train_loader = DataLoader(train_ds, batch_size=batch_size, sampler=sampler)
     else:
         train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
 
     return train_loader, counts_list, train_emb, train_lbl, train_pid
-    
+
+
 def build_grouped_val_loader(
     val_file_idx,
     embeddings_by_file,
@@ -158,7 +169,7 @@ def build_grouped_val_loader(
     for file_idx in val_file_idx:
         emb = embeddings_by_file[file_idx]
         label = file_meta[file_idx]["label"]
-        nseq  = emb.shape[0]
+        nseq = emb.shape[0]
 
         val_emb_list.append(emb)
         val_lbl_list.extend([label] * nseq)
@@ -170,6 +181,7 @@ def build_grouped_val_loader(
 
     val_ds = TensorDataset(val_emb, val_lbl, val_pid)
     return DataLoader(val_ds, batch_size=batch_size, shuffle=False), val_lbl
+
 
 def compute_grouped_holdout_metrics(
     y_true,
@@ -184,9 +196,10 @@ def compute_grouped_holdout_metrics(
     acc = accuracy_score(y_true, y_pred) * 100
     macro_recall = recall_score(y_true, y_pred, average="macro", zero_division=0) * 100
     macro_f1 = f1_score(y_true, y_pred, average="macro", zero_division=0) * 100
-    per_class_recall = recall_score(
-        y_true, y_pred, average=None, labels=[0, 1, 2], zero_division=0
-    ) * 100
+    per_class_recall = (
+        recall_score(y_true, y_pred, average=None, labels=[0, 1, 2], zero_division=0)
+        * 100
+    )
 
     metrics = {
         "accuracy": acc,
@@ -199,6 +212,7 @@ def compute_grouped_holdout_metrics(
         "y_pred": y_pred,
     }
     return metrics
+
 
 def compute_composition_recovery(y_true, y_pred):
     y_true = np.asarray(y_true)
@@ -213,16 +227,19 @@ def compute_composition_recovery(y_true, y_pred):
     abs_prop_error = np.abs(true_props - pred_props)
     mean_abs_prop_error = abs_prop_error.mean()
 
-    comp_df = pd.DataFrame({
-        "class_idx": [0, 1, 2],
-        "true_count": true_counts,
-        "pred_count": pred_counts,
-        "true_prop": true_props,
-        "pred_prop": pred_props,
-        "abs_prop_error": abs_prop_error,
-    })
+    comp_df = pd.DataFrame(
+        {
+            "class_idx": [0, 1, 2],
+            "true_count": true_counts,
+            "pred_count": pred_counts,
+            "true_prop": true_props,
+            "pred_prop": pred_props,
+            "abs_prop_error": abs_prop_error,
+        }
+    )
 
     return comp_df, mean_abs_prop_error
+
 
 def train_grouped_holdout_cv(
     file_meta,
@@ -230,7 +247,7 @@ def train_grouped_holdout_cv(
     model_fn,
     seq_len,
     num_epochs=100,
-    device='cuda',
+    device="cuda",
     patience=25,
     batch_size=64,
     num_classes=3,
@@ -238,7 +255,7 @@ def train_grouped_holdout_cv(
     useWeightedSampler=False,
     weighted_ce_power=1.0,
     warmup_epochs=5,
-    optimizer_lr= 1e-3,
+    optimizer_lr=1e-3,
     optimizer_weight_decay=1e-2,
     schedular_patience=10,
     checkpoint_dir="grouped_holdout_checkpoints",
@@ -273,13 +290,15 @@ def train_grouped_holdout_cv(
         print("=" * 90)
 
         # Train loader from original train-MSA embeddings
-        train_loader, counts_list, train_emb, train_lbl, train_pid = build_grouped_train_loader(
-            split["train_file_idx"],
-            embeddings_by_file,
-            file_meta,
-            batch_size=batch_size,
-            num_classes=num_classes,
-            useWeightedSampler=useWeightedSampler,
+        train_loader, counts_list, train_emb, train_lbl, train_pid = (
+            build_grouped_train_loader(
+                split["train_file_idx"],
+                embeddings_by_file,
+                file_meta,
+                batch_size=batch_size,
+                num_classes=num_classes,
+                useWeightedSampler=useWeightedSampler,
+            )
         )
 
         print(f"  Train class dist: {Counter(train_lbl.numpy())}")
@@ -293,14 +312,14 @@ def train_grouped_holdout_cv(
 
         print(f"  Val class dist: {Counter(val_lbl.numpy())}")
 
-        # Fresh model and criterion 
+        # Fresh model and criterion
         model = model_fn().to(device)
         if useWeightedCE:
             criterion = make_weighted_ce(counts_list, device, power=weighted_ce_power)
         else:
             criterion = None
 
-        # Train using your existing train_classifier 
+        # Train using your existing train_classifier
         # grouped test contains all classes, so use final-mode:
         # held_out_class=None => primary metric = macro_f1
         history = train_classifier(
@@ -316,15 +335,19 @@ def train_grouped_holdout_cv(
             held_out_class_name=None,
             held_out_file_name=",".join(split["test_file_names"]),
             class_names=class_names,
-            checkpoint_path=f"{checkpoint_dir}/grouped_holdout_fold{fold_idx}.pt" if checkpoint_dir else None,
+            checkpoint_path=(
+                f"{checkpoint_dir}/grouped_holdout_fold{fold_idx}.pt"
+                if checkpoint_dir
+                else None
+            ),
             warmup_epochs=warmup_epochs,
             optimizer_lr=optimizer_lr,
             optimizer_weight_decay=optimizer_weight_decay,
-            schedular_patience=schedular_patience
+            schedular_patience=schedular_patience,
         )
         last_history = history
 
-        # Extract best-epoch validation predictions from history 
+        # Extract best-epoch validation predictions from history
         best_epoch_idx = history["saved_epoch"] - 1
         y_true_best = np.asarray(history["val_targets"][best_epoch_idx])
         y_prob_best = np.asarray(history["val_probs"][best_epoch_idx])
@@ -336,38 +359,41 @@ def train_grouped_holdout_cv(
         )
 
         comp_df, mean_abs_prop_error = compute_composition_recovery(
-            y_true_best,
-            metrics["y_pred"]
+            y_true_best, metrics["y_pred"]
         )
 
-        pred_df = pd.DataFrame({
-            "fold": fold_idx,
-            "true_label": y_true_best,
-            "pred_label": metrics["y_pred"],
-            "prob_barrier": y_prob_best[:, 0],
-            "prob_cation": y_prob_best[:, 1],
-            "prob_anion": y_prob_best[:, 2],
-            "confidence": y_prob_best.max(axis=1),
-            "test_files": ",".join(split["test_file_names"]),
-        })
+        pred_df = pd.DataFrame(
+            {
+                "fold": fold_idx,
+                "true_label": y_true_best,
+                "pred_label": metrics["y_pred"],
+                "prob_barrier": y_prob_best[:, 0],
+                "prob_cation": y_prob_best[:, 1],
+                "prob_anion": y_prob_best[:, 2],
+                "confidence": y_prob_best.max(axis=1),
+                "test_files": ",".join(split["test_file_names"]),
+            }
+        )
 
-        grouped_results.append({
-            "fold": fold_idx,
-            "train_files": split["train_file_names"],
-            "test_files": split["test_file_names"],
-            "saved_epoch": history["saved_epoch"],
-            "accuracy": metrics["accuracy"],
-            "macro_recall": metrics["macro_recall"],
-            "macro_f1": metrics["macro_f1"],
-            "recall_barrier": metrics["recall_barrier"],
-            "recall_cation": metrics["recall_cation"],
-            "recall_anion": metrics["recall_anion"],
-            "mean_abs_prop_error": mean_abs_prop_error,
-            "confusion_matrix": metrics["confusion_matrix"],
-            "composition_df": comp_df,
-            "pred_df": pred_df,
-            "history": history,
-        })
+        grouped_results.append(
+            {
+                "fold": fold_idx,
+                "train_files": split["train_file_names"],
+                "test_files": split["test_file_names"],
+                "saved_epoch": history["saved_epoch"],
+                "accuracy": metrics["accuracy"],
+                "macro_recall": metrics["macro_recall"],
+                "macro_f1": metrics["macro_f1"],
+                "recall_barrier": metrics["recall_barrier"],
+                "recall_cation": metrics["recall_cation"],
+                "recall_anion": metrics["recall_anion"],
+                "mean_abs_prop_error": mean_abs_prop_error,
+                "confusion_matrix": metrics["confusion_matrix"],
+                "composition_df": comp_df,
+                "pred_df": pred_df,
+                "history": history,
+            }
+        )
 
         print("\n  Sequence-level metrics:")
         print(f"    Accuracy      : {metrics['accuracy']:.2f}%")
@@ -384,6 +410,7 @@ def train_grouped_holdout_cv(
 
     return grouped_results, last_history
 
+
 def print_grouped_holdout_summary(grouped_results):
     print("\n" + "=" * 120)
     print("GROUPED MIXED HOLDOUT SUMMARY")
@@ -395,32 +422,41 @@ def print_grouped_holdout_summary(grouped_results):
 
     print("-" * 120)
 
-    print(f"{'Fold':<5} {'Test files':<45} {'Acc%':>8} {'MacroRec%':>10} {'MacroF1%':>10} "
-          f"{'Barrier%':>10} {'Cation%':>10} {'Anion%':>10} {'MAPE':>10}")
+    print(
+        f"{'Fold':<5} {'Test files':<45} {'Acc%':>8} {'MacroRec%':>10} {'MacroF1%':>10} "
+        f"{'Barrier%':>10} {'Cation%':>10} {'Anion%':>10} {'MAPE':>10}"
+    )
     print("-" * 120)
 
     for r in grouped_results:
-        print(f"{r['fold']:<5} "
-              f"{','.join(r['test_files']):<45} "
-              f"{r['accuracy']:>8.2f} "
-              f"{r['macro_recall']:>10.2f} "
-              f"{r['macro_f1']:>10.2f} "
-              f"{r['recall_barrier']:>10.2f} "
-              f"{r['recall_cation']:>10.2f} "
-              f"{r['recall_anion']:>10.2f} "
-              f"{r['mean_abs_prop_error']:>10.4f}")
+        print(
+            f"{r['fold']:<5} "
+            f"{','.join(r['test_files']):<45} "
+            f"{r['accuracy']:>8.2f} "
+            f"{r['macro_recall']:>10.2f} "
+            f"{r['macro_f1']:>10.2f} "
+            f"{r['recall_barrier']:>10.2f} "
+            f"{r['recall_cation']:>10.2f} "
+            f"{r['recall_anion']:>10.2f} "
+            f"{r['mean_abs_prop_error']:>10.4f}"
+        )
 
     print("-" * 120)
 
-    metrics_df = pd.DataFrame([{
-        "accuracy": r["accuracy"],
-        "macro_recall": r["macro_recall"],
-        "macro_f1": r["macro_f1"],
-        "recall_barrier": r["recall_barrier"],
-        "recall_cation": r["recall_cation"],
-        "recall_anion": r["recall_anion"],
-        "mean_abs_prop_error": r["mean_abs_prop_error"],
-    } for r in grouped_results])
+    metrics_df = pd.DataFrame(
+        [
+            {
+                "accuracy": r["accuracy"],
+                "macro_recall": r["macro_recall"],
+                "macro_f1": r["macro_f1"],
+                "recall_barrier": r["recall_barrier"],
+                "recall_cation": r["recall_cation"],
+                "recall_anion": r["recall_anion"],
+                "mean_abs_prop_error": r["mean_abs_prop_error"],
+            }
+            for r in grouped_results
+        ]
+    )
 
     print("\nMean grouped-holdout metrics:")
     print(metrics_df.mean())
@@ -428,29 +464,35 @@ def print_grouped_holdout_summary(grouped_results):
     print("\nStd grouped-holdout metrics:")
     print(metrics_df.std())
 
+
 def save_grouped_holdout_results(grouped_results, prefix="grouped_holdout"):
     if len(grouped_results) == 0:
         print("No grouped results to save.")
         return
 
-    summary_df = pd.DataFrame([{
-        "fold": r["fold"],
-        "train_files": ",".join(r["train_files"]),
-        "test_files": ",".join(r["test_files"]),
-        "saved_epoch": r["saved_epoch"],
-        "accuracy": r["accuracy"],
-        "macro_recall": r["macro_recall"],
-        "macro_f1": r["macro_f1"],
-        "recall_barrier": r["recall_barrier"],
-        "recall_cation": r["recall_cation"],
-        "recall_anion": r["recall_anion"],
-        "mean_abs_prop_error": r["mean_abs_prop_error"],
-    } for r in grouped_results])
+    summary_df = pd.DataFrame(
+        [
+            {
+                "fold": r["fold"],
+                "train_files": ",".join(r["train_files"]),
+                "test_files": ",".join(r["test_files"]),
+                "saved_epoch": r["saved_epoch"],
+                "accuracy": r["accuracy"],
+                "macro_recall": r["macro_recall"],
+                "macro_f1": r["macro_f1"],
+                "recall_barrier": r["recall_barrier"],
+                "recall_cation": r["recall_cation"],
+                "recall_anion": r["recall_anion"],
+                "mean_abs_prop_error": r["mean_abs_prop_error"],
+            }
+            for r in grouped_results
+        ]
+    )
 
     preds_df = pd.concat([r["pred_df"] for r in grouped_results], ignore_index=True)
 
     summary_path = f"{prefix}/summary.csv"
-    preds_path   = f"{prefix}/predictions.csv"
+    preds_path = f"{prefix}/predictions.csv"
 
     summary_df.to_csv(summary_path, index=False)
     preds_df.to_csv(preds_path, index=False)
