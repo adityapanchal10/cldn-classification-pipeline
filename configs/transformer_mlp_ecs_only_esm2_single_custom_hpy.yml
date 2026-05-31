@@ -1,5 +1,5 @@
 experiment:
-  name: "Transformer MLP Full Seqs MSA Single Custom HPY"
+  name: "Transformer MLP ECS only ESM2 Single Custom HPY"
   seed: 999
 
 model:
@@ -8,9 +8,9 @@ model:
   uses_attention: true
 
 data:
-  dataset_type: "full_seqs"
-  # If ECS only, specify the regions to cut, else keep empty
-  ecs_only_regions: none
+  dataset_type: "ecs_only"
+  # If ECS only, specify the regions to cut, else keep empty to use default
+  ecs_only_regions: [[28, 81], [139, 164]]
 
 embedder:
   name: "esm2"
