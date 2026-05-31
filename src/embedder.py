@@ -109,44 +109,28 @@ class MSAEmbedder:
         Returns:
             Tensor: (N, L, 768)
         """
-
         sequences = [self._clean_sequence(s) for s in sequences]
         sequences = self.pad_or_truncate(sequences, seq_length)
 
         all_embeddings = []
-
         total_batches = (len(sequences) + batch_size - 1) // batch_size
 
         for batch_idx in range(total_batches):
-
             start = batch_idx * batch_size
             end = min(start + batch_size, len(sequences))
-
             batch = sequences[start:end]
-
             msa_inputs = [[(f"seq{i}", seq)] for i, seq in enumerate(batch)]
-
             _, _, batch_tokens = self.batch_converter(msa_inputs)
-
             batch_tokens = batch_tokens.to(self.device)
-
             with torch.no_grad():
-
                 results = self.model(
                     batch_tokens, repr_layers=[12], return_contacts=False
                 )
-
-            token_emb = results["representations"][12]
-
-            # Shape:
-            # (B, 1, L+1, 768)
-
+            token_emb = results["representations"][12] # Shape: (B, 1, L+1, 768)
             token_emb = token_emb[:, 0, 1:, :]
-
             all_embeddings.append(token_emb.cpu())
 
         output_embeddings = torch.cat(all_embeddings, dim=0)
-
         return output_embeddings
 
 
@@ -235,7 +219,7 @@ class ESM2Embedder:
                 )
 
             token_emb = results["representations"][self.model.num_layers]
-            token_emb = token_emb[:, 1:, :]
+            token_emb = token_emb[:, 1:-1, :] # Remove BOS and EOS → (B, L, D)
             all_embeddings.append(token_emb.cpu())
 
         output_embeddings = torch.cat(all_embeddings, dim=0)
