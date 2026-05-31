@@ -14,7 +14,7 @@ data:
 
 embedder:
   name: "esm2"
-  use_msa_mode: true
+  use_msa_mode: false
 
 evaluation:
   mode: "single"

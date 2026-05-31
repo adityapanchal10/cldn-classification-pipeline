@@ -10,7 +10,7 @@ def get_embedding_dir(cfg):
     embedder_name = cfg["embedder"].get("name")
     if embedder_name == "esm2":
         base_dir = Path("/content/drive/MyDrive/Thesis data/embeddings/esm2")
-        embedding_dir = base_dir / dataset_type / f"manifest_{embedding_mode}.csv"
+        embedding_dir = base_dir / dataset_type / f"manifest_independent.csv"
     else:
         base_dir = Path("/content/drive/MyDrive/Thesis data/embeddings/msa_transformer")
         embedding_dir = (
