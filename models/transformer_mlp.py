@@ -57,7 +57,7 @@ class AttentionPool(nn.Module):
 class TransformerMLPClassifier(nn.Module):
     def __init__(
         self,
-        input_dim=768,          # ESM embedding dim — fixed
+        embedding_dim=768,          # ESM embedding dim — fixed
         proj_dim=128,
         num_classes=3,
         num_heads=4,
@@ -71,7 +71,7 @@ class TransformerMLPClassifier(nn.Module):
 
         # Stage 1: Project ESM embeddings down to a manageable size
         self.input_proj = nn.Sequential(
-            nn.Linear(input_dim, proj_dim),   # 768 → 128
+            nn.Linear(embedding_dim, proj_dim),   # 768 → 128
             nn.LayerNorm(proj_dim),
             nn.Dropout(dropout)
         )

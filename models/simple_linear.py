@@ -3,13 +3,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class SimpleLinearClassifier(nn.Module):
-    def __init__(self, n_classes=3, dropout=0.2):
+    def __init__(self, n_classes=3, dropout=0.2, embedding_dim=768):
         super().__init__()
         self.n_classes = n_classes
-        self.norm = nn.LayerNorm(768)
-        self.attn = nn.Linear(768, 1)     # attention scores per residue
+        self.norm = nn.LayerNorm(embedding_dim)
+        self.attn = nn.Linear(embedding_dim, 1)     # attention scores per residue
         self.dropout = nn.Dropout(dropout)
-        self.fc = nn.Linear(768, n_classes)
+        self.fc = nn.Linear(embedding_dim, n_classes)
 
     def forward(self, x, mask=None):
         # x: (B, L, 768)
