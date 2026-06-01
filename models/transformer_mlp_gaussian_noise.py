@@ -71,6 +71,8 @@ class TransformerMLPClassifier(nn.Module):
 
         self.uses_attn = True
 
+        self.embedding_noise_std = embedding_noise_std
+
         # Stage 1: Project ESM embeddings down to a manageable size
         self.input_proj = nn.Sequential(
             nn.Linear(embedding_dim, proj_dim),  # 768/640 → 128
