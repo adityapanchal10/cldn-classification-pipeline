@@ -101,13 +101,13 @@ class TransformerMLPClassifier(nn.Module):
         # Stage 5: Lightweight classifier head
         self.head = nn.Sequential(
             nn.LayerNorm(proj_dim * 2),
+            nn.Linear(proj_dim * 2, proj_dim),  # 256 → 128
+            nn.GELU(),
+            nn.Dropout(dropout),
             nn.Linear(proj_dim, proj_dim // 2),  # 128 → 64
             nn.GELU(),
             nn.Dropout(dropout),
-            nn.Linear(proj_dim // 2, proj_dim // 4),  # 64 → 32
-            nn.GELU(),
-            nn.Dropout(dropout),
-            nn.Linear(proj_dim // 4, num_classes),  # 32 → 3
+            nn.Linear(proj_dim // 2, num_classes),  # 64 → 3
         )
 
     def forward(self, x, return_attn=False, return_pooled=False):
