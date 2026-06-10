@@ -1,5 +1,5 @@
 experiment:
-  name: "Mamba2 ESM ECS Only MSA Single"
+  name: "Mamba2 ECS Only ESM2 Single"
   seed: 999
 
 model:

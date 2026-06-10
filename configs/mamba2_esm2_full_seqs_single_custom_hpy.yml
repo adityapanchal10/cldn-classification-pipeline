@@ -1,5 +1,5 @@
 experiment:
-  name: "Mamba2 ESM Full Seqs MSA Single"
+  name: "Mamba2 Full Seqs ESM2 Single"
   seed: 999
 
 model:
