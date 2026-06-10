@@ -9,9 +9,12 @@ model:
 
 data:
   dataset_type: "ecs_only"
-  use_msa_mode: true
   # If ECS only, specify the regions to cut, else keep empty
   ecs_only_regions: [[28, 81], [139, 164]]
+
+embedder:
+  name: "msa_transformer"
+  use_msa_mode: true
 
 evaluation:
   mode: "single"

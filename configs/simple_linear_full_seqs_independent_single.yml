@@ -9,6 +9,9 @@ model:
 
 data:
   dataset_type: "full_seqs"
+
+embedder:
+  name: "msa_transformer"
   use_msa_mode: false
 
 evaluation:
