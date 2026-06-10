@@ -1,0 +1,44 @@
+experiment:
+  name: "Mamba2 ESM Full Seqs MSA Single"
+  seed: 999
+
+model:
+  module: "models.mamba2_esm"
+  class_name: "Mamba2ESMClassifier"
+  uses_attention: true
+  init_args:
+    embedding_dim: 640
+    model_dim: 256
+    state_dim: 64
+    expand_factor: 2
+    num_ssm_blocks: 6
+    dropout: 0.2
+    num_classes: 3
+    pooling_mode: "attention"
+
+data:
+  dataset_type: "full_seqs"
+  ecs_only_regions: none
+
+embedder:
+  name: "esm2"
+  use_msa_mode: false
+
+evaluation:
+  mode: "single"
+  test_data: "Explain_humanCldn2-10a-15-17.fasta"
+
+path:
+  runs_root: "/content/drive/MyDrive/Thesis data/runs"
+
+hyperparameters:
+  use_custom_hyperparameters: true
+  optimizer_lr: 1e-4
+  optimizer_weight_decay: 1e-5
+  schedular_patience: 10
+  warmup_epochs: 5
+  useWeightedSampler: false
+  weighted_ce_power: false
+  num_epochs: none
+  batch_size: 128
+  patience: none
