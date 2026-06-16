@@ -6,6 +6,8 @@ model:
   module: "models.transformer_mlp_gaussian_noise"
   class_name: "TransformerMLPClassifier"
   uses_attention: true
+  init_args:
+    max_seq_len: 220
 
 data:
   dataset_type: "full_seqs"

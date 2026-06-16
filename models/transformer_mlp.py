@@ -79,6 +79,7 @@ class TransformerMLPClassifier(nn.Module):
 
         # Stage 2: Positional embeddings (now 128-dim, not 768/640-dim)
         self.pos_emb = nn.Embedding(max_seq_len, proj_dim)
+        nn.init.normal_(self.pos_emb.weight, mean=0.0, std=0.02)
 
         self.emb_norm_before = nn.LayerNorm(proj_dim)
         self.dropout = nn.Dropout(dropout)

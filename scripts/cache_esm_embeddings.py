@@ -359,7 +359,7 @@ def main() -> None:
     output_root.mkdir(parents=True, exist_ok=True)
 
     embedder = ESMEmbedder(model_name=args.model_name, device=args.device)
-    print(f"Using model {args.model_name} on device {embedder.device}")
+    print(f"Using model {args.model_name} on device {embedder.device} with seq_length={args.seq_length}")
     fasta_files = discover_fasta_files(input_path)
     if not fasta_files:
         raise FileNotFoundError(f"No FASTA files found under {input_path}")

@@ -6,6 +6,8 @@ model:
   module: "models.transformer_mlp"
   class_name: "TransformerMLPClassifier"
   uses_attention: true
+  init_args:
+    max_seq_len: 80
 
 data:
   dataset_type: "ecs_only"

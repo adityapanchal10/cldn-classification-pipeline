@@ -11,6 +11,8 @@ data:
   dataset_type: "full_seqs"
   # If ECS only, specify the regions to cut, else keep empty
   ecs_only_regions: none
+  init_args:
+    max_seq_len: 220
 
 embedder:
   name: "msa_transformer"
