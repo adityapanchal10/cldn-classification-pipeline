@@ -26,6 +26,7 @@ def infer_label_from_item_id(item_id: str) -> int:
         "cldn5": 0,
         "cldn10a": 2,
         "cldn10b": 1,
+        "cldn14": 0,
         "cldn15": 1,
         "cldn17": 2,
     }
