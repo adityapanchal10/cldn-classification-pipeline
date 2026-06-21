@@ -797,7 +797,7 @@ def evaluate_split(
     with torch.no_grad():
         logits = model(embeddings.to(device))
         probs = torch.softmax(logits, dim=1).cpu().numpy()
-    y_true = labels.cpu().numpy()
+    y_true = labels.cpu().numpy() if isinstance(labels, torch.Tensor) else np.array(labels)
     y_pred = probs.argmax(axis=1)
 
     acc = 100 * accuracy_score(y_true, y_pred)
