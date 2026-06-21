@@ -313,26 +313,41 @@ def load_single_embeddings_from_manifest(manifest_candidates):
             )
 
         seq_field = (row.get("sequence_id") or "").strip()
-        headers = [h.strip() for h in seq_field.split(",") if h.strip()]
-        if not headers:
+        seq_entries = [s.strip() for s in seq_field.split(",") if s.strip()]
+
+        if not seq_entries:
             raise ValueError(
-                f"No sequence headers found for row in manifest: {manifest_path}"
+                f"No sequence IDs found for row in manifest: {manifest_path}"
             )
 
-        if emb.shape[0] != len(headers):
+        if emb.shape[0] != len(seq_entries):
             raise ValueError(
-                f"Single split count mismatch ({split_key}): embeddings={emb.shape[0]} vs sequence_headers={len(headers)}"
+                f"Single split count mismatch ({split_key}): embeddings={emb.shape[0]} vs sequence_ids={len(seq_entries)}"
             )
 
         row_labels = []
         row_headers = []
         row_sequences = []
+        missing_ids = []
 
-        for header in headers:
-            label = infer_label_from_header(header)
+        for entry in seq_entries:
+            # Extract the sequence ID before the first '|'
+            sid = entry.split("|", 1)[0].strip()
+
+            rec = id_to_record.get(sid)
+            if rec is None:
+                missing_ids.append(sid)
+                continue
+
+            # Use the complete FASTA header
+            header = rec.description
+            seq = str(rec.seq)
+
+            # Infer label from the manifest entry instead of the FASTA header
+            label = infer_label_from_header(entry)
 
             row_headers.append(header)
-            row_sequences.append(None)   # Sequence is no longer available
+            row_sequences.append(seq)
             row_labels.append(label)
 
         if missing_ids:
