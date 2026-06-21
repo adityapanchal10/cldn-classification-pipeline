@@ -822,7 +822,7 @@ def evaluate_split(
         y_true, y_pred, labels=[0, 1, 2], zero_division=0
     )
     print("\nPer-class metrics:")
-    for i, cname in class_names.items():
+    for i, cname in enumerate(class_names):
         p = per_class[0][i] * 100
         r = per_class[1][i] * 100
         f1 = per_class[2][i] * 100
