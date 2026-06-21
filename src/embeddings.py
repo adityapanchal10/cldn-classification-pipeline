@@ -273,6 +273,9 @@ def load_single_embeddings_from_manifest(manifest_candidates):
 
     manifest_entries = read_manifest_rows(manifest_path, unique_item_ids=False)
 
+    # Cache parsed FASTA records by normalized source path.
+    fasta_record_cache = {}
+
     split_payload = {
         "train": {
             "embeddings": [],
@@ -312,17 +315,37 @@ def load_single_embeddings_from_manifest(manifest_candidates):
                 f"Expected (N, L, D) tensor for single split, got {tuple(emb.shape)} for {artifact_path}"
             )
 
-        seq_field = (row.get("sequence_id") or "").strip()
-        seq_entries = [s.strip() for s in seq_field.split(",") if s.strip()]
+        source_path = normalize_source_path(row.get("source_path", ""))
+        if source_path not in fasta_record_cache:
+            id_to_record = {}
 
-        if not seq_entries:
+            for rec in SeqIO.parse(source_path, "fasta"):
+                # Match the sequence_id stored in the manifest against the
+                # first token of the FASTA header (e.g. "s1" from
+                # "s1 | major_label=cldn3")
+                seq_id = rec.description.split("|", 1)[0].strip()
+
+                if seq_id in id_to_record:
+                    raise ValueError(
+                        f"Duplicate sequence ID '{seq_id}' found in {source_path}"
+                    )
+
+                id_to_record[seq_id] = rec
+
+            fasta_record_cache[source_path] = id_to_record
+
+        id_to_record = fasta_record_cache[source_path]
+
+        seq_field = (row.get("sequence_id") or "").strip()
+        seq_ids = [s.strip() for s in seq_field.split(",") if s.strip()]
+        if not seq_ids:
             raise ValueError(
                 f"No sequence IDs found for row in manifest: {manifest_path}"
             )
 
-        if emb.shape[0] != len(seq_entries):
+        if emb.shape[0] != len(seq_ids):
             raise ValueError(
-                f"Single split count mismatch ({split_key}): embeddings={emb.shape[0]} vs sequence_ids={len(seq_entries)}"
+                f"Single split count mismatch ({split_key}): embeddings={emb.shape[0]} vs sequence_ids={len(seq_ids)}"
             )
 
         row_labels = []
@@ -330,21 +353,15 @@ def load_single_embeddings_from_manifest(manifest_candidates):
         row_sequences = []
         missing_ids = []
 
-        for entry in seq_entries:
-            # Extract the sequence ID before the first '|'
-            sid = entry.split("|", 1)[0].strip()
-
+        for sid in seq_ids:
             rec = id_to_record.get(sid)
             if rec is None:
                 missing_ids.append(sid)
                 continue
 
-            # Use the complete FASTA header
             header = rec.description
             seq = str(rec.seq)
-
-            # Infer label from the manifest entry instead of the FASTA header
-            label = infer_label_from_header(entry)
+            label = infer_label_from_header(header)
 
             row_headers.append(header)
             row_sequences.append(seq)
