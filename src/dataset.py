@@ -37,6 +37,7 @@ class MSADataset:
 
         self.labels = labels
         self.test_data = test_data
+        self.unseen_masks = {}
 
         if reference_msa is not None:
             self.msa_files = self._align_to_reference(
@@ -51,7 +52,6 @@ class MSADataset:
         self.combined_labels = []
         self.combined_file_indices = []
         self.combined_file_names = []
-        self.unseen_masks = {}
 
         self._process_files()
 
