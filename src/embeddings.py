@@ -273,9 +273,6 @@ def load_single_embeddings_from_manifest(manifest_candidates):
 
     manifest_entries = read_manifest_rows(manifest_path, unique_item_ids=False)
 
-    # Cache parsed FASTA records by normalized source path.
-    fasta_record_cache = {}
-
     split_payload = {
         "train": {
             "embeddings": [],
@@ -315,43 +312,27 @@ def load_single_embeddings_from_manifest(manifest_candidates):
                 f"Expected (N, L, D) tensor for single split, got {tuple(emb.shape)} for {artifact_path}"
             )
 
-        source_path = normalize_source_path(row.get("source_path", ""))
-        if source_path not in fasta_record_cache:
-            records = list(SeqIO.parse(source_path, format="fasta"))
-            id_to_record = {rec.id: rec for rec in records}
-            fasta_record_cache[source_path] = id_to_record
-
-        id_to_record = fasta_record_cache[source_path]
-
         seq_field = (row.get("sequence_id") or "").strip()
-        seq_ids = [s.strip() for s in seq_field.split(",") if s.strip()]
-        if not seq_ids:
+        headers = [h.strip() for h in seq_field.split(",") if h.strip()]
+        if not headers:
             raise ValueError(
-                f"No sequence IDs found for row in manifest: {manifest_path}"
+                f"No sequence headers found for row in manifest: {manifest_path}"
             )
 
-        if emb.shape[0] != len(seq_ids):
+        if emb.shape[0] != len(headers):
             raise ValueError(
-                f"Single split count mismatch ({split_key}): embeddings={emb.shape[0]} vs sequence_ids={len(seq_ids)}"
+                f"Single split count mismatch ({split_key}): embeddings={emb.shape[0]} vs sequence_headers={len(headers)}"
             )
 
         row_labels = []
         row_headers = []
         row_sequences = []
-        missing_ids = []
 
-        for sid in seq_ids:
-            rec = id_to_record.get(sid)
-            if rec is None:
-                missing_ids.append(sid)
-                continue
-
-            header = rec.description
-            seq = str(rec.seq)
+        for header in headers:
             label = infer_label_from_header(header)
 
             row_headers.append(header)
-            row_sequences.append(seq)
+            row_sequences.append(None)   # Sequence is no longer available
             row_labels.append(label)
 
         if missing_ids:

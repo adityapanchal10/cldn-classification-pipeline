@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import sys
 import random
 from collections import defaultdict
 from pathlib import Path
@@ -10,6 +11,18 @@ from typing import Dict, List, Optional, Tuple
 import esm
 import torch
 from Bio import SeqIO
+
+try:
+    csv.field_size_limit(sys.maxsize)
+except OverflowError:
+    # Some platforms don't accept sys.maxsize directly
+    limit = sys.maxsize
+    while True:
+        try:
+            csv.field_size_limit(limit)
+            break
+        except OverflowError:
+            limit //= 10
 
 
 def load_esm_model(model_name: str = "esm_msa1b_t12_100M_UR50S"):
@@ -862,7 +875,7 @@ def main() -> None:
                         strategy,
                         chunk_size,
                         str(train_path),
-                        ",".join(seq_id for seq_id, _ in train_records),
+                        ";".join(seq_id for seq_id, _ in train_records),
                     ]
                 )
                 manifest_rows.append(
@@ -874,7 +887,7 @@ def main() -> None:
                         strategy,
                         chunk_size,
                         str(test_path),
-                        ",".join(seq_id for seq_id, _ in test_records),
+                        ";".join(seq_id for seq_id, _ in test_records),
                     ]
                 )
 
@@ -905,7 +918,7 @@ def main() -> None:
                             strategy,
                             chunk_size,
                             str(best_chunk_path),
-                            ",".join(seq_id for seq_id, _ in best_chunk_records),
+                            ";".join(seq_id for seq_id, _ in best_chunk_records),
                         ]
                     )
 
@@ -936,7 +949,7 @@ def main() -> None:
                             strategy,
                             len(dropped_records),
                             str(unseen_path),
-                            ",".join(seq_id for seq_id, _ in dropped_records),
+                            ";".join(seq_id for seq_id, _ in dropped_records),
                         ]
                     )
 
