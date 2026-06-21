@@ -790,8 +790,9 @@ def plot_final_roc_curves(
 
 
 def evaluate_split(
-    name, model, embeddings, labels, class_names=["barrier", "cation", "anion"]
+    name, model, embeddings, labels, class_names=["barrier", "cation", "anion"], device=None
 ):
+    device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.eval()
     with torch.no_grad():
         logits = model(embeddings.to(device))
