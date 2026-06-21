@@ -224,8 +224,9 @@ def read_fasta(path: Path) -> List[Tuple[str, str]]:
     records = []
     for record in SeqIO.parse(str(path), "fasta"):
         sequence = str(record.seq).replace(" ", "").replace("\n", "").upper()
-        header = record.description.strip()
-        records.append((header, sequence))
+        new_header = f"{record.id} | major_label={record.description.strip().split('major_label=')[1]}"
+        # print(new_header)
+        records.append((new_header, sequence))
     return records
 
 
@@ -875,7 +876,7 @@ def main() -> None:
                         strategy,
                         chunk_size,
                         str(train_path),
-                        ";".join(seq_id for seq_id, _ in train_records),
+                        ",".join(seq_id for seq_id, _ in train_records),
                     ]
                 )
                 manifest_rows.append(
@@ -887,7 +888,7 @@ def main() -> None:
                         strategy,
                         chunk_size,
                         str(test_path),
-                        ";".join(seq_id for seq_id, _ in test_records),
+                        ",".join(seq_id for seq_id, _ in test_records),
                     ]
                 )
 
@@ -918,7 +919,7 @@ def main() -> None:
                             strategy,
                             chunk_size,
                             str(best_chunk_path),
-                            ";".join(seq_id for seq_id, _ in best_chunk_records),
+                            ",".join(seq_id for seq_id, _ in best_chunk_records),
                         ]
                     )
 
@@ -949,7 +950,7 @@ def main() -> None:
                             strategy,
                             len(dropped_records),
                             str(unseen_path),
-                            ";".join(seq_id for seq_id, _ in dropped_records),
+                            ",".join(seq_id for seq_id, _ in dropped_records),
                         ]
                     )
 
