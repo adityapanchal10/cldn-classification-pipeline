@@ -1,5 +1,6 @@
 from pathlib import Path
 import csv
+import sys
 from collections import Counter
 import torch
 from Bio import SeqIO
@@ -7,6 +8,18 @@ import numpy as np
 
 from src.dataset import MSADataset
 from src.embedder import MSAEmbedder
+
+try:
+    csv.field_size_limit(sys.maxsize)
+except OverflowError:
+    # Some platforms don't accept sys.maxsize directly
+    limit = sys.maxsize
+    while True:
+        try:
+            csv.field_size_limit(limit)
+            break
+        except OverflowError:
+            limit //= 10
 
 
 def infer_label_from_item_id(item_id: str) -> int:
