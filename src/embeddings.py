@@ -336,7 +336,7 @@ def load_single_embeddings_from_manifest(manifest_candidates):
         id_to_record = fasta_record_cache[source_path]
 
         seq_field = (row.get("sequence_id") or "").strip()
-        seq_ids = [s.strip() for s in seq_field.split(",") if s.strip()]
+        seq_ids = [s.strip().split("|")[0] for s in seq_field.split(",") if s.strip()]
         if not seq_ids:
             raise ValueError(
                 f"No sequence IDs found for row in manifest: {manifest_path}"
