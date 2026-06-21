@@ -19,6 +19,7 @@ embedder:
 evaluation:
   mode: "single"
   test_data: "Explain_humanCldn2-10a-15-17.fasta"
+  test_data_labels: [1, 2, 1, 2] # {0: 'barrier', 1: 'cation', 2: 'anion'} optional
 
 path:
   runs_root: "/content/drive/MyDrive/Thesis data/runs"

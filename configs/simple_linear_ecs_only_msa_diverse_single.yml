@@ -1,5 +1,5 @@
 experiment:
-  name: "Simple Linear Full Seqs MSA Single Split Random Distribution"
+  name: "Simple Linear ECS only MSA Single Split Random Distribution"
   seed: 999
 
 model:
@@ -8,9 +8,11 @@ model:
   uses_attention: false
 
 data:
-  dataset_type: "full_seqs"
+  dataset_type: "ecs_only"
+  # If ECS only, specify the regions to cut, else keep empty
+  ecs_only_regions: [[28, 81], [139, 164]]
   # Specify the split strategy to use for embedding the sequences in MSA mode (random, balanced, family, diverse)
-  split_strategy: "random"
+  split_strategy: "diverse"
 
 embedder:
   name: "msa_transformer"

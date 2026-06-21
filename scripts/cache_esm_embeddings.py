@@ -230,6 +230,14 @@ def read_fasta(path: Path) -> List[Tuple[str, str]]:
     return records
 
 
+def write_records_fasta(output_path: Path, records: List[Tuple[str, str]]) -> Path:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as handle:
+        for seq_id, seq in records:
+            handle.write(f">{seq_id}\n{seq}\n")
+    return output_path
+
+
 def discover_fasta_files(input_path: Path) -> List[Path]:
     if input_path.is_file():
         return [input_path]
@@ -922,6 +930,11 @@ def main() -> None:
                             ",".join(seq_id for seq_id, _ in best_chunk_records),
                         ]
                     )
+                    best_chunk_fasta_path = write_records_fasta(
+                        output_root / "best_chunk.fasta",
+                        best_chunk_records,
+                    )
+                    print(f"Saved best chunk sequences to {best_chunk_fasta_path}")
 
                 if dropped_records:
                     unseen_embedding = embed_records_msa(
