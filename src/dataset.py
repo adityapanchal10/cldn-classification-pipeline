@@ -89,9 +89,13 @@ class MSADataset:
             unseen_records = list(SeqIO.parse(msa_file, "fasta"))
             unseen_count = len(unseen_records)
 
-            # Temporary output file
-            fd, outfile = tempfile.mkstemp(suffix=".fasta")
-            os.close(fd)
+            # Save the output fasta where reference MSA is
+            ref_msa_dir = os.path.dirname(reference_msa)
+            outfile = os.path.join(
+                ref_msa_dir,
+                f"aligned_{os.path.basename(msa_file)}"
+            )
+
 
             cmd = [
                 "mafft",
