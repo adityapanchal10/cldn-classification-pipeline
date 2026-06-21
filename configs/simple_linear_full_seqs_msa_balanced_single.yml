@@ -1,5 +1,5 @@
 experiment:
-  name: "Simple Linear Full Seqs Non-MSA Single Split"
+  name: "Simple Linear Full Seqs MSA Single Split Balanced Distribution"
   seed: 999
 
 model:
@@ -9,12 +9,12 @@ model:
 
 data:
   dataset_type: "full_seqs"
-  # Specify the split strategy to use for embedding the sequences in MSA mode (random, balanced, family, diverse), none if not using MSA mode or MSA Transformer
-  split_strategy: none
+  # Specify the split strategy to use for embedding the sequences in MSA mode (random, balanced, family, diverse)
+  split_strategy: "balanced"
 
 embedder:
   name: "msa_transformer"
-  use_msa_mode: false
+  use_msa_mode: true
 
 evaluation:
   mode: "single"

@@ -7,12 +7,14 @@ model:
   class_name: "TransformerMLPClassifier"
   uses_attention: true
   init_args:
-    max_seq_len: 220
+    max_seq_len: 190
 
 data:
   dataset_type: "full_seqs"
   # If ECS only, specify the regions to cut, else keep empty
   ecs_only_regions: none
+  # Specify the split strategy to use for embedding the sequences in MSA mode (random, balanced, family, diverse), none if not using MSA mode or MSA Transformer
+  split_strategy: none
 
 embedder:
   name: "msa_transformer"

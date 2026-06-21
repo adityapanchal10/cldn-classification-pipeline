@@ -1,18 +1,18 @@
 experiment:
-  name: "Transformer MLP ECS only Non-MSA Single"
+  name: "Simple Linear ECS only MSA Single Split Random Distribution"
   seed: 999
 
 model:
-  module: "models.transformer_mlp"
-  class_name: "TransformerMLPClassifier"
-  uses_attention: true
-  init_args:
-    max_seq_len: 80
+  module: "models.simple_linear"
+  class_name: "SimpleLinearClassifier"
+  uses_attention: false
 
 data:
   dataset_type: "ecs_only"
-  # If ECS only, specify the regions to cut, else keep empty to use default
+  # If ECS only, specify the regions to cut, else keep empty
   ecs_only_regions: [[28, 81], [139, 164]]
+  # Specify the split strategy to use for embedding the sequences in MSA mode (random, balanced, family, diverse)
+  split_strategy: "random"
 
 embedder:
   name: "msa_transformer"
@@ -30,12 +30,12 @@ hyperparameters:
   use_custom_hyperparameters: false
   # If not running hyperparameter tuning, these values will be used directly for training and evaluation
   # Else leave empty
-  optimizer_lr: none
-  optimizer_weight_decay: none
-  schedular_patience: none
-  warmup_epochs: none
-  useWeightedSampler: false
-  weighted_ce_power: false
-  num_epochs: none
-  batch_size: none
-  patience: none
+  optimizer_lr: 
+  optimizer_weight_decay: 
+  schedular_patience: 
+  warmup_epochs: 
+  useWeightedSampler: 
+  weighted_ce_power: 
+  num_epochs: 
+  batch_size: 
+  patience: 

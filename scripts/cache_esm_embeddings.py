@@ -651,7 +651,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--model-name", default="esm_msa1b_t12_100M_UR50S")
     parser.add_argument("--seq-length", type=int, default=190)
-    parser.add_argument("--max-msa-depth", type=int, default=300)
+    parser.add_argument("--max-msa-depth", type=int, default=100)
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--test-fraction", type=float, default=0.2)
     parser.add_argument("--seed", type=int, default=99)
@@ -711,6 +711,7 @@ def main() -> None:
         raise FileNotFoundError(f"No FASTA files found under {input_path}")
 
     manifest_rows = []
+    unseen_manifest_rows = []
 
     for fasta_path in fasta_files:
         records = read_fasta(fasta_path)
@@ -908,6 +909,37 @@ def main() -> None:
                         ]
                     )
 
+                if dropped_records:
+                    unseen_embedding = embed_records_msa(
+                        embedder=embedder,
+                        records=dropped_records,
+                        seq_length=args.seq_length,
+                        chunk_size=len(dropped_records) if len(dropped_records) < 1024 else len(dropped_records) // 2,
+                    )
+                    unseen_path = write_split_artifact(
+                        output_root / "unseen.pt",
+                        fasta_path.stem,
+                        "unseen",
+                        dropped_records,
+                        unseen_embedding,
+                        args.model_name,
+                        args.embedding_mode,
+                        split_strategy=strategy,
+                        chunk_size=len(dropped_records),
+                    )
+                    unseen_manifest_rows.append(
+                        [
+                            str(fasta_path),
+                            fasta_path.stem,
+                            args.embedding_mode,
+                            "unseen",
+                            strategy,
+                            len(dropped_records),
+                            str(unseen_path),
+                            ",".join(seq_id for seq_id, _ in dropped_records),
+                        ]
+                    )
+
                 print(
                     f"Processed {fasta_path.name} with msa strategy={strategy}, "
                     f"chunk_size={chunk_size}, "
@@ -915,12 +947,12 @@ def main() -> None:
                 )
                 if strategy in {"balanced", "family", "diverse"} and dropped_records:
                     print(
-                        f"Dropped {len(dropped_records)} leftover records to preserve "
-                        f"uniform chunk size={chunk_size}."
+                        f"Saved {len(dropped_records)} leftover records to unseen.pt "
+                        f"to preserve uniform chunk size={chunk_size}."
                     )
                 continue
 
-            strategy = "random"
+            strategy = "random independent"
             chunk_size = args.batch_size
 
             train_records, test_records = split_records(
@@ -1062,6 +1094,26 @@ def main() -> None:
         writer.writerows(manifest_rows)
 
     print(f"Wrote manifest to {manifest_path}")
+
+    if unseen_manifest_rows:
+        unseen_manifest_path = output_root / "manifest_unseen.csv"
+        with open(unseen_manifest_path, "w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(
+                [
+                    "source_path",
+                    "item_id",
+                    "embedding_mode",
+                    "split_name",
+                    "split_strategy",
+                    "chunk_size",
+                    "artifact_path",
+                    "sequence_id",
+                ]
+            )
+            writer.writerows(unseen_manifest_rows)
+
+        print(f"Wrote unseen manifest to {unseen_manifest_path}")
 
 
 if __name__ == "__main__":

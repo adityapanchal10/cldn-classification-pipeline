@@ -19,6 +19,8 @@ model:
 data:
   dataset_type: "ecs_only"
   ecs_only_regions: [[28, 81], [139, 164]]
+  # Specify the split strategy to use for embedding the sequences in MSA mode (random, balanced, family, diverse), none if not using MSA mode or MSA Transformer
+  split_strategy: none
 
 embedder:
   name: "esm2"

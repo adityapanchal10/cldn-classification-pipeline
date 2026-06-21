@@ -1,18 +1,16 @@
 experiment:
-  name: "Transformer MLP Full Seqs MSA Single"
+  name: "Simple Linear Full Seqs MSA Single Split Family Distribution"
   seed: 999
 
 model:
-  module: "models.transformer_mlp"
-  class_name: "TransformerMLPClassifier"
-  uses_attention: true
-  init_args:
-    max_seq_len: 220
+  module: "models.simple_linear"
+  class_name: "SimpleLinearClassifier"
+  uses_attention: false
 
 data:
   dataset_type: "full_seqs"
-  # If ECS only, specify the regions to cut, else keep empty
-  ecs_only_regions: none
+  # Specify the split strategy to use for embedding the sequences in MSA mode (random, balanced, family, diverse)
+  split_strategy: "family"
 
 embedder:
   name: "msa_transformer"
@@ -30,12 +28,12 @@ hyperparameters:
   use_custom_hyperparameters: false
   # If not running hyperparameter tuning, these values will be used directly for training and evaluation
   # Else leave empty
-  optimizer_lr: none
-  optimizer_weight_decay: none
-  schedular_patience: none
-  warmup_epochs: none
-  useWeightedSampler: none
-  weighted_ce_power: none
-  num_epochs: none
-  batch_size: none
-  patience: none
+  optimizer_lr: 
+  optimizer_weight_decay: 
+  schedular_patience: 
+  warmup_epochs: 
+  useWeightedSampler: 
+  weighted_ce_power: 
+  num_epochs: 
+  batch_size: 
+  patience: 

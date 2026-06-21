@@ -1,5 +1,5 @@
 experiment:
-  name: "Transformer MLP ECS only ESM2 Single Custom HPY"
+  name: "Transformer MLP ECS only MSA Single Random Distribution Custom HPY"
   seed: 999
 
 model:
@@ -13,12 +13,12 @@ data:
   dataset_type: "ecs_only"
   # If ECS only, specify the regions to cut, else keep empty to use default
   ecs_only_regions: [[28, 81], [139, 164]]
-  # Specify the split strategy to use for embedding the sequences in MSA mode (random, balanced, family, diverse), none if not using MSA mode or MSA Transformer
-  split_strategy: none
+  # Specify the split strategy to use for embedding the sequences in MSA mode (random, balanced, family, diverse)
+  split_strategy: "random"
 
 embedder:
-  name: "esm2"
-  use_msa_mode: false
+  name: "msa_transformer"
+  use_msa_mode: true
 
 evaluation:
   mode: "single"
@@ -39,5 +39,5 @@ hyperparameters:
   useWeightedSampler: false
   weighted_ce_power: false
   num_epochs: none
-  batch_size: 128
+  batch_size: none
   patience: none

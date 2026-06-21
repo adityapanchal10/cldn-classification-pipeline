@@ -279,14 +279,17 @@ def load_single_embeddings_from_manifest(manifest_candidates):
     }
 
     for row in manifest_entries:
-        raw_split = (row.get("embedding_mode") or "unknown").strip().lower()
+        raw_split = (row.get("split_name") or "unknown").strip().lower()
         split_key = (
             "val"
-            if raw_split in {"val", "test"}
+            if raw_split in {"val", "test", "unseen"}
             else "train" if raw_split == "train" else None
         )
         if split_key is None:
             continue
+
+        chunk_size_str = (row.get("chunk_size") or "").strip()
+        chunk_size = int(chunk_size_str) if chunk_size_str.isdigit() else None
 
         artifact_path = resolve_artifact_path(row, manifest_path)
         if not artifact_path.exists():
@@ -392,6 +395,7 @@ def load_single_embeddings_from_manifest(manifest_candidates):
     print(
         f"Single val labels: {Counter(val_labels.numpy()) if val_labels.numel() > 0 else {}}"
     )
+    print(f"Chunk size (if any): {chunk_size}")
 
     return {
         "manifest_path": manifest_path,
@@ -404,4 +408,5 @@ def load_single_embeddings_from_manifest(manifest_candidates):
         "val_headers": val_headers,
         "train_sequences": train_sequences,
         "val_sequences": val_sequences,
+        "chunk_size": chunk_size,
     }

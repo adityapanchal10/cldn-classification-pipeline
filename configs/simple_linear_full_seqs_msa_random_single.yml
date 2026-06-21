@@ -1,5 +1,5 @@
 experiment:
-  name: "Simple Linear Full Seqs MSA Single Split"
+  name: "Simple Linear Full Seqs MSA Single Split Random Distribution"
   seed: 999
 
 model:
@@ -9,6 +9,8 @@ model:
 
 data:
   dataset_type: "full_seqs"
+  # Specify the split strategy to use for embedding the sequences in MSA mode (random, balanced, family, diverse)
+  split_strategy: "random"
 
 embedder:
   name: "msa_transformer"
