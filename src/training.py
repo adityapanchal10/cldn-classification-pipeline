@@ -790,15 +790,20 @@ def plot_final_roc_curves(
 
 
 def evaluate_split(
-    name, model, embeddings, labels, class_names=["barrier", "cation", "anion"], device=None
+    name, preds, labels, model=None, embeddings=None, class_names=["barrier", "cation", "anion"], device=None
 ):
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.eval()
-    with torch.no_grad():
-        logits = model(embeddings.to(device))
-        probs = torch.softmax(logits, dim=1).cpu().numpy()
-    y_true = labels.cpu().numpy() if isinstance(labels, torch.Tensor) else np.array(labels)
-    y_pred = probs.argmax(axis=1)
+    if model and embeddings is not None:
+        model.eval()
+        with torch.no_grad():
+            logits = model(embeddings.to(device))
+            probs = torch.softmax(logits, dim=1).cpu().numpy()
+        y_true = labels.cpu().numpy() if isinstance(labels, torch.Tensor) else np.array(labels)
+        y_pred = probs.argmax(axis=1)
+    else:
+        y_true = labels.cpu().numpy() if isinstance(labels, torch.Tensor) else np.array(labels)
+        y_pred = preds.cpu().numpy() if isinstance(preds, torch.Tensor) else np.array(preds)
+        probs = None
 
     acc = 100 * accuracy_score(y_true, y_pred)
     bal_acc = 100 * balanced_accuracy_score(y_true, y_pred)
