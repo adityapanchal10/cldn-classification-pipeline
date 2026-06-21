@@ -320,10 +320,9 @@ def load_single_embeddings_from_manifest(manifest_candidates):
             id_to_record = {}
 
             for rec in SeqIO.parse(source_path, "fasta"):
-                # Match the sequence_id stored in the manifest against the
-                # first token of the FASTA header (e.g. "s1" from
-                # "s1 | major_label=cldn3")
-                seq_id = rec.description.split("|", 1)[0].strip()
+                # Extract "q1" from:
+                # "q1 asdfdgsfdsg | major_label=cldn1"
+                seq_id = rec.description.split()[0].strip()
 
                 if seq_id in id_to_record:
                     raise ValueError(
