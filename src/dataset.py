@@ -39,6 +39,7 @@ class MSADataset:
         self.labels = labels
         self.test_data = test_data
         self.unseen_masks = {}
+        self.ecs_only = ecs_only
 
         if reference_msa is not None:
             self.msa_files = self._align_to_reference(
@@ -55,7 +56,6 @@ class MSADataset:
         self.combined_file_names = []
 
         self._process_files()
-        self.ecs_only = ecs_only
 
     def _align_to_reference(self, msa_files, reference_msa):
         """
