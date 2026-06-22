@@ -1,5 +1,5 @@
 experiment:
-  name: "Simple Linear ECS only MSA Single Split Random Distribution"
+  name: "Simple Linear ECS only MSA Single Split Balanced Distribution"
   seed: 999
 
 model:
