@@ -263,7 +263,7 @@ def explain_predictions(
         all_results["samples"].append(sample_result)
 
         if run_ablation and true_classes is not None:
-            true_class = true_classes[i].item()
+            true_class = true_classes[i]
             ablation_results = ablation_study(
                 model=model,
                 inputs=sample,
