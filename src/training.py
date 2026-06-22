@@ -790,9 +790,16 @@ def plot_final_roc_curves(
 
 
 def evaluate_split(
-    name, preds, labels, model=None, embeddings=None, class_names=["barrier", "cation", "anion"], device=None
+    name, preds, labels, model=None, embeddings=None, device=None
 ):
+    LABELS = np.array([0, 1, 2])
+    CLASS_INFO = OrderedDict([
+        (0, "barrier"),
+        (1, "cation"),
+        (2, "anion"),
+    ])
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     if model and embeddings is not None:
         model.eval()
         with torch.no_grad():
@@ -804,13 +811,15 @@ def evaluate_split(
         y_true = labels.cpu().numpy() if isinstance(labels, torch.Tensor) else np.array(labels)
         y_pred = preds.cpu().numpy() if isinstance(preds, torch.Tensor) else np.array(preds)
         probs = None
+    y_true = y_true.astype(int)
+    y_pred = y_pred.astype(int)
 
     acc = 100 * accuracy_score(y_true, y_pred)
     bal_acc = 100 * balanced_accuracy_score(y_true, y_pred)
     macro_p, macro_r, macro_f1, _ = precision_recall_fscore_support(
-        y_true, y_pred, average="macro", zero_division=0
+        y_true, y_pred, labels=LABELS, average="macro", zero_division=0
     )
-    cm = confusion_matrix(y_true, y_pred, labels=[0, 1, 2])
+    cm = confusion_matrix(y_true, y_pred, labels=LABELS)
 
     print("\n" + "=" * 72)
     print(f"{name} RESULTS")
@@ -824,10 +833,10 @@ def evaluate_split(
     print(cm)
 
     per_class = precision_recall_fscore_support(
-        y_true, y_pred, labels=[0, 1, 2], zero_division=0
+        y_true, y_pred, labels=LABELS, average=None, zero_division=0
     )
     print("\nPer-class metrics:")
-    for i, cname in enumerate(class_names):
+    for i, (label, cname) in enumerate(CLASS_INFO.items()):
         p = per_class[0][i] * 100
         r = per_class[1][i] * 100
         f1 = per_class[2][i] * 100
