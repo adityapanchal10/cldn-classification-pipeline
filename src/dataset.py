@@ -31,6 +31,7 @@ class MSADataset:
         labels,
         test_data=False,
         reference_msa=None,
+        ecs_only=False,
     ):
         assert len(msa_files) == len(labels), \
             "msa_files and labels must be same length"
@@ -54,6 +55,7 @@ class MSADataset:
         self.combined_file_names = []
 
         self._process_files()
+        self.ecs_only = ecs_only
 
     def _align_to_reference(self, msa_files, reference_msa):
         """
@@ -96,7 +98,6 @@ class MSADataset:
                 f"aligned_{os.path.basename(msa_file)}"
             )
 
-
             cmd = [
                 "mafft",
                 "--quiet",
@@ -137,7 +138,7 @@ class MSADataset:
 
             for rec in records:
                 self.combined_ids.append(rec.description)
-                self.combined_seqs.append(str(rec.seq))
+                self.combined_seqs.append(str(rec.seq)) if self.ecs_only else self.combined_seqs.append(str(rec.seq)[:190]) # hard truncate to 190 as our models are trained on seq_len 190
                 self.combined_labels.append(label)
                 self.combined_file_indices.append(file_idx)
                 self.combined_file_names.append(fname)
