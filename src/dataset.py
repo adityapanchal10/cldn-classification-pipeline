@@ -107,24 +107,11 @@ class MSADataset:
             ]
 
             with open(outfile, "w") as f:
-                result = subprocess.run(
+                subprocess.run(
                     cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
+                    stdout=f,
                     check=True,
                 )
-
-                # write alignment to file
-                f.write(result.stdout)
-
-            print("Return code:", result.returncode)
-
-            print("\n=== STDOUT (alignment) ===\n")
-            print(result.stdout)
-
-            print("\n=== STDERR (logs/warnings) ===\n")
-            print(result.stderr)
 
             aligned_files.append(outfile)
 
