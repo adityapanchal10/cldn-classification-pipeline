@@ -39,6 +39,6 @@ hyperparameters:
   warmup_epochs: 3
   useWeightedSampler: false
   weighted_ce_power: false
-  num_epochs: none
-  batch_size: 
-  patience: none
+  num_epochs: None
+  batch_size: None
+  patience: None
