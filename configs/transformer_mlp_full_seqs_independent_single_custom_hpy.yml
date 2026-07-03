@@ -40,5 +40,5 @@ hyperparameters:
   useWeightedSampler: false
   weighted_ce_power: false
   num_epochs: none
-  batch_size: none
+  batch_size: 128
   patience: none

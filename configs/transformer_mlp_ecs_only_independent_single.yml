@@ -1,5 +1,5 @@
 experiment:
-  name: "Transformer MLP ECS only Non-MSA Single Custom HPY"
+  name: "Transformer MLP ECS only Non-MSA Single"
   seed: 999
 
 model:

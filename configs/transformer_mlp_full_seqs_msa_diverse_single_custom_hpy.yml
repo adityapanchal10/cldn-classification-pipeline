@@ -1,5 +1,5 @@
 experiment:
-  name: "Transformer MLP Full Seqs MSA Single Random Distribution Custom HPY"
+  name: "Transformer MLP Full Seqs MSA Single Diverse Distribution Custom HPY"
   seed: 999
 
 model:
