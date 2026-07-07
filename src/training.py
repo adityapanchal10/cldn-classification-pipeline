@@ -412,10 +412,9 @@ def train_classifier(
             )
             break
 
-    # Record best-epoch predictions
-    best_idx = history["saved_epoch"] - 1
-    history["best_val_targets"] = history["val_targets"][best_idx]
-    history["best_val_probs"] = history["val_probs"][best_idx]
+    # Record final-epoch predictions
+    history["best_val_targets"] = history["val_targets"][-1]
+    history["best_val_probs"] = history["val_probs"][-1]
     history["best_val_preds"] = np.argmax(history["best_val_probs"], axis=1)
 
     if device.type == "cuda":
