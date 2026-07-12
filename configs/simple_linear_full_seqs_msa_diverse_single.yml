@@ -19,7 +19,7 @@ embedder:
 evaluation:
   mode: "single"
   test_data: "test_2_4_10a_10b_14_19_zf_Cldna-like.fasta"
-  test_data_labels: [0, 0, 2, 1, 0, 0, 1] # {0: 'barrier', 1: 'cation', 2: 'anion'} optional
+  test_data_labels: [1, 0, 2, 1, 0, 0, 1] # {0: 'barrier', 1: 'cation', 2: 'anion'} optional
 
 path:
   runs_root: "/content/drive/MyDrive/Thesis data/runs"
