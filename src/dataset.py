@@ -143,6 +143,47 @@ class MSADataset:
                 self.combined_file_indices.append(file_idx)
                 self.combined_file_names.append(fname)
 
+    _MAJOR_LABEL_MAP = {
+        "cldn1":  0,
+        "cldn2":  1,
+        "cldn3":  0,
+        "cldn5":  0,
+        "cldn10a": 2,
+        "cldn10b": 1,
+        "cldn14": 0,
+        "cldn15": 1,
+    }
+
+    def getLabels(self):
+        """
+        Extracts the ``major_label`` value from each sequence header and
+        converts it to the corresponding integer class label.
+
+        Returns
+        -------
+        list[int]
+            Class index for every sequence in ``combined_ids``, in the same
+            order as ``getSequences()``.
+
+        Raises
+        ------
+        ValueError
+            If a header contains an unrecognised ``major_label`` value.
+        """
+        labels = []
+        for header in self.combined_ids:
+            if "major_label=" not in header:
+                raise ValueError(
+                    f"Header has no major_label field: '{header}'"
+                )
+            value = header.split("major_label=")[-1].strip()
+            if value not in self._MAJOR_LABEL_MAP:
+                raise ValueError(
+                    f"Unknown major_label value '{value}' in header: '{header}'"
+                )
+            labels.append(self._MAJOR_LABEL_MAP[value])
+        return labels
+
     def getSequences(self):
         if self.test_data:
             return self.combined_ids, self.combined_seqs

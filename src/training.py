@@ -845,6 +845,8 @@ def evaluate_split(
     return {
         "acc": acc,
         "bal_acc": bal_acc,
+        "macro_p": macro_p * 100,
+        "macro_r": macro_r * 100,
         "macro_f1": macro_f1 * 100,
         "cm": cm,
         "y_true": y_true,
