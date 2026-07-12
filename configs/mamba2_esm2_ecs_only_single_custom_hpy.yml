@@ -1,5 +1,5 @@
 experiment:
-  name: "Mamba2 ECS Only ESM2 Single"
+  name: "Mamba2 ECS Only ESM2 Single Custom HPY"
   seed: 999
 
 model:
@@ -28,8 +28,8 @@ embedder:
 
 evaluation:
   mode: "single"
-  test_data: "Explain_humanCldn2-10a-15-17.fasta"
-  test_data_labels: [1, 2, 2, 1] # {0: 'barrier', 1: 'cation', 2: 'anion'} optional
+  test_data: "test_2_4_10a_10b_14_19_zf_Cldna-like.fasta"
+  test_data_labels: [0, 0, 2, 1, 0, 0, 1] # {0: 'barrier', 1: 'cation', 2: 'anion'} optional
 
 path:
   runs_root: "/content/drive/MyDrive/Thesis data/runs"
